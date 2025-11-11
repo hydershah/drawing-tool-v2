@@ -102,9 +102,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Prompt operations
   const addPrompt = useCallback(async (prompt: string, email: string) => {
-    const newPrompt = await promptStorage.create(prompt, email);
-    setPrompts(prev => [...prev, newPrompt]);
-    return newPrompt;
+    // Create optimistic prompt with temporary data
+    const tempId = `temp-${Date.now()}`;
+    const optimisticPrompt: Prompt = {
+      id: tempId,
+      prompt,
+      email,
+      status: 'pending',
+      promptNumber: undefined,
+      createdAt: Date.now(),
+      completedAt: undefined,
+      artworkId: undefined,
+    };
+
+    // Update UI immediately
+    setPrompts(prev => [optimisticPrompt, ...prev]);
+
+    try {
+      // Create on backend
+      const newPrompt = await promptStorage.create(prompt, email);
+
+      // Replace optimistic prompt with real one
+      setPrompts(prev => prev.map(p => p.id === tempId ? newPrompt : p));
+
+      return newPrompt;
+    } catch (error) {
+      console.error('Failed to add prompt:', error);
+      // Remove optimistic prompt on error
+      setPrompts(prev => prev.filter(p => p.id !== tempId));
+      throw error;
+    }
   }, []);
 
   const updatePrompt = useCallback((id: string, updates: Partial<Prompt>) => {
@@ -113,9 +140,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deletePrompt = useCallback(async (id: string) => {
-    await promptStorage.delete(id);
+    // Optimistic update - instant UI feedback
+    const prompt = prompts.find(p => p.id === id);
+
+    // Update UI immediately
     setPrompts(prev => prev.filter(p => p.id !== id));
-  }, []);
+
+    // Sync with backend in background
+    try {
+      await promptStorage.delete(id);
+    } catch (error) {
+      console.error('Failed to delete prompt:', error);
+      // Revert on error
+      if (prompt) {
+        setPrompts(prev => [prompt, ...prev]);
+      }
+    }
+  }, [prompts]);
 
   const addEmailToPrompt = useCallback(async (id: string, email: string) => {
     await promptStorage.addEmail(id, email);
@@ -137,41 +178,132 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     artistEmail?: string;
     isAdminCreated: boolean;
   }) => {
-    const newArtwork = await artworkStorage.create(data);
+    // Create optimistic artwork
+    const tempId = `temp-${Date.now()}`;
 
-    if (newArtwork.status === 'approved') {
-      setArtworks(prev => [...prev, newArtwork]);
+    // Calculate next prompt number from existing artworks
+    let nextNumber = data.promptNumber;
+    if (!nextNumber) {
+      const allArtworkNumbers = [...artworks, ...pendingArtworks]
+        .map(a => a.promptNumber)
+        .filter((n): n is number => typeof n === 'number' && n > 0);
+      nextNumber = allArtworkNumbers.length > 0 ? Math.max(...allArtworkNumbers) + 1 : 1;
+    }
+
+    const optimisticArtwork: Artwork = {
+      id: tempId,
+      promptId: data.promptId,
+      promptNumber: nextNumber,
+      imageData: data.imageData,
+      artistName: data.artistName,
+      artistEmail: data.artistEmail,
+      status: data.isAdminCreated ? 'approved' : 'pending',
+      isAdminCreated: data.isAdminCreated,
+      createdAt: Date.now(),
+      approvedAt: data.isAdminCreated ? Date.now() : undefined,
+    };
+
+    // Update UI immediately
+    if (optimisticArtwork.status === 'approved') {
+      setArtworks(prev => [optimisticArtwork, ...prev]);
     } else {
-      setPendingArtworks(prev => [...prev, newArtwork]);
+      setPendingArtworks(prev => [optimisticArtwork, ...prev]);
     }
 
-    // Refresh prompts to get updated status (backend marks as completed)
-    if (data.promptId) {
-      await refreshPrompts();
-    }
+    try {
+      // Create on backend
+      const newArtwork = await artworkStorage.create(data);
 
-    return newArtwork;
-  }, [refreshPrompts]);
+      // Replace optimistic artwork with real one
+      if (newArtwork.status === 'approved') {
+        setArtworks(prev => prev.map(a => a.id === tempId ? newArtwork : a));
+      } else {
+        setPendingArtworks(prev => prev.map(a => a.id === tempId ? newArtwork : a));
+      }
+
+      // Refresh prompts in background to get updated status
+      if (data.promptId) {
+        refreshPrompts();
+      }
+
+      return newArtwork;
+    } catch (error) {
+      console.error('Failed to add artwork:', error);
+      // Remove optimistic artwork on error
+      setArtworks(prev => prev.filter(a => a.id !== tempId));
+      setPendingArtworks(prev => prev.filter(a => a.id !== tempId));
+      throw error;
+    }
+  }, [artworks, pendingArtworks, refreshPrompts]);
 
   const approveArtwork = useCallback(async (id: string) => {
-    await artworkStorage.approve(id);
-    const artwork = await artworkStorage.getById(id);
-    if (artwork) {
-      setPendingArtworks(prev => prev.filter(a => a.id !== id));
-      setArtworks(prev => [...prev, artwork]);
+    // Optimistic update - instant UI feedback
+    const pendingArtwork = pendingArtworks.find(a => a.id === id);
+    if (!pendingArtwork) return;
+
+    const approvedArtwork = {
+      ...pendingArtwork,
+      status: 'approved' as const,
+      approvedAt: Date.now(),
+    };
+
+    // Update UI immediately
+    setPendingArtworks(prev => prev.filter(a => a.id !== id));
+    setArtworks(prev => [approvedArtwork, ...prev]);
+
+    // Sync with backend in background
+    try {
+      await artworkStorage.approve(id);
+    } catch (error) {
+      console.error('Failed to approve artwork:', error);
+      // Revert on error
+      setPendingArtworks(prev => [pendingArtwork, ...prev]);
+      setArtworks(prev => prev.filter(a => a.id !== id));
     }
-  }, []);
+  }, [pendingArtworks]);
 
   const rejectArtwork = useCallback(async (id: string) => {
-    await artworkStorage.reject(id);
+    // Optimistic update - instant UI feedback
+    const artwork = pendingArtworks.find(a => a.id === id);
+
+    // Update UI immediately
     setPendingArtworks(prev => prev.filter(a => a.id !== id));
-  }, []);
+
+    // Sync with backend in background
+    try {
+      await artworkStorage.reject(id);
+    } catch (error) {
+      console.error('Failed to reject artwork:', error);
+      // Revert on error
+      if (artwork) {
+        setPendingArtworks(prev => [artwork, ...prev]);
+      }
+    }
+  }, [pendingArtworks]);
 
   const deleteArtwork = useCallback(async (id: string) => {
-    await artworkStorage.delete(id);
+    // Optimistic update - instant UI feedback
+    const approvedArtwork = artworks.find(a => a.id === id);
+    const pendingArtwork = pendingArtworks.find(a => a.id === id);
+
+    // Update UI immediately
     setArtworks(prev => prev.filter(a => a.id !== id));
     setPendingArtworks(prev => prev.filter(a => a.id !== id));
-  }, []);
+
+    // Sync with backend in background
+    try {
+      await artworkStorage.delete(id);
+    } catch (error) {
+      console.error('Failed to delete artwork:', error);
+      // Revert on error
+      if (approvedArtwork) {
+        setArtworks(prev => [approvedArtwork, ...prev]);
+      }
+      if (pendingArtwork) {
+        setPendingArtworks(prev => [pendingArtwork, ...prev]);
+      }
+    }
+  }, [artworks, pendingArtworks]);
 
   const refreshArtworks = useCallback(async () => {
     const [approved, pending] = await Promise.all([
