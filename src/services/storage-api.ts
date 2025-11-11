@@ -103,7 +103,7 @@ export const artworkStorage = {
     });
   },
 
-  async update(id: string, updates: Partial<Artwork>): Promise<void> {
+  async update(_id: string, _updates: Partial<Artwork>): Promise<void> {
     // Note: The backend doesn't have a generic update endpoint
     // You may need to add this to the backend if needed
     console.warn('Artwork update not implemented in API backend');

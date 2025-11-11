@@ -128,13 +128,15 @@ app.get('/api/artworks', async (req, res) => {
   try {
     const status = req.query.status as string;
 
-    let query = db.select().from(schema.artworks);
+    const artworks = status
+      ? await db.select()
+          .from(schema.artworks)
+          .where(eq(schema.artworks.status, status))
+          .orderBy(desc(schema.artworks.createdAt))
+      : await db.select()
+          .from(schema.artworks)
+          .orderBy(desc(schema.artworks.createdAt));
 
-    if (status) {
-      query = query.where(eq(schema.artworks.status, status));
-    }
-
-    const artworks = await query.orderBy(desc(schema.artworks.createdAt));
     res.json(artworks);
   } catch (error) {
     console.error('Error fetching artworks:', error);
