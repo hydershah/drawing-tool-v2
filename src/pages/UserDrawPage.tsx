@@ -184,14 +184,20 @@ export function UserDrawPage() {
 
     try {
       const imageData = canvasRef.current.exportImage(false);
-      await addArtwork({
+      const artworkData = {
         imageData,
         promptId: prompt.id,
         promptText: prompt.prompt,
+        promptNumber: prompt.promptNumber,
         artistName: artistName.trim(),
         artistEmail: artistEmail.trim(),
         isAdminCreated: false,
+      };
+      console.log('[UserDrawPage] Submitting artwork with data:', {
+        ...artworkData,
+        imageData: `${imageData.substring(0, 50)}... (${imageData.length} chars)`,
       });
+      await addArtwork(artworkData);
 
       if (artistEmail.trim()) {
         toast.success('Your artwork has been submitted! Check your email to receive it. Browse more prompts to create more art!', {

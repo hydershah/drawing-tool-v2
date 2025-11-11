@@ -16,6 +16,7 @@ import {
   Mail,
   Filter,
   RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import { formatDate } from '@/utils/format';
 import { toast } from 'sonner';
@@ -178,7 +179,7 @@ function PromptItem({ prompt, isLast, onDelete, onAddEmail, isProcessing }: Prom
 }
 
 export function AdminPromptsPage() {
-  const { prompts, deletePrompt, addEmailToPrompt } = useApp();
+  const { prompts, deletePrompt, addEmailToPrompt, isLoading } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -264,6 +265,19 @@ export function AdminPromptsPage() {
 
     return { total, completed, pending, withEmail };
   }, [prompts]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            Loading prompts...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 mt-24 px-8">

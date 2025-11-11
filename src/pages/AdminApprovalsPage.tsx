@@ -81,7 +81,7 @@ const LazyArtworkImage = memo(({ imageData, prompt }: { imageData: string; promp
 LazyArtworkImage.displayName = 'LazyArtworkImage';
 
 export function AdminApprovalsPage() {
-  const { pendingArtworks, approveArtwork, rejectArtwork, prompts, updatePrompt } = useApp();
+  const { pendingArtworks, approveArtwork, rejectArtwork, prompts, updatePrompt, isLoading } = useApp();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [dialogState, setDialogState] = useState<ActionDialogState>({
     isOpen: false,
@@ -212,6 +212,19 @@ export function AdminApprovalsPage() {
     }
   }, [prompts]);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            Loading pending artworks...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (pendingArtworks.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -269,11 +282,11 @@ export function AdminApprovalsPage() {
                   key={artwork.id}
                   className="bg-card border border-border rounded-lg overflow-hidden transition-all hover:border-primary"
                 >
-                  <LazyArtworkImage imageData={artwork.imageData} prompt={prompt?.prompt} />
+                  <LazyArtworkImage imageData={artwork.imageData} prompt={artwork.promptText || prompt?.prompt} />
 
                   <div className="p-4 space-y-3">
-                    <div className="text-foreground text-sm line-clamp-2" title={prompt?.prompt} style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
-                      {prompt?.prompt || 'No prompt'}
+                    <div className="text-foreground text-sm line-clamp-2" title={artwork.promptText || prompt?.prompt} style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                      {artwork.promptText || prompt?.prompt || 'No prompt'}
                     </div>
 
                     {artwork.artistName && (
@@ -383,7 +396,7 @@ export function AdminApprovalsPage() {
             {dialogState.artwork && (
               <div className="bg-muted/30 rounded-lg p-3 mt-4" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                 <div className="text-foreground text-sm mb-2">
-                  <strong>Prompt:</strong> {prompts.find(p => p.id === dialogState.artwork?.promptId)?.prompt || 'N/A'}
+                  <strong>Prompt:</strong> {dialogState.artwork.promptText || prompts.find(p => p.id === dialogState.artwork?.promptId)?.prompt || 'N/A'}
                 </div>
                 {dialogState.artwork.artistName && (
                   <div className="text-foreground text-xs mb-1">

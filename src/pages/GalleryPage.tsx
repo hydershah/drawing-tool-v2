@@ -86,6 +86,16 @@ function ArtworkCard({
         {formatPromptNumber(artwork.promptNumber)}
       </div>
 
+      {artwork.promptText && (
+        <div
+          className="text-muted-foreground text-xs mb-2 line-clamp-2"
+          style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+          title={artwork.promptText}
+        >
+          {artwork.promptText}
+        </div>
+      )}
+
       {artwork.artistName && (
         <div
           className="flex items-center gap-2 text-muted-foreground mt-1"
@@ -100,7 +110,7 @@ function ArtworkCard({
 }
 
 export function GalleryPage() {
-  const { artworks, isAdmin, deleteArtwork } = useApp();
+  const { artworks, isAdmin, deleteArtwork, isLoading } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -147,6 +157,19 @@ export function GalleryPage() {
     },
     [deleteArtwork]
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            Loading gallery...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (artworks.length === 0) {
     return (

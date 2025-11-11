@@ -7,11 +7,15 @@ import type { Prompt, Artwork } from '@/types';
 import { promptStorage, artworkStorage, adminStorage } from '@/services/supabase-storage';
 
 interface AppContextType {
+  // Loading state
+  isLoading: boolean;
+
   // Prompts
   prompts: Prompt[];
   addPrompt: (prompt: string, email: string) => Promise<Prompt>;
   updatePrompt: (id: string, updates: Partial<Prompt>) => void;
   deletePrompt: (id: string) => void;
+  addEmailToPrompt: (id: string, email: string) => Promise<void>;
   refreshPrompts: () => void;
 
   // Artworks
@@ -20,6 +24,8 @@ interface AppContextType {
   addArtwork: (data: {
     imageData: string;
     promptId?: string;
+    promptText?: string;
+    promptNumber?: number;
     artistName?: string;
     artistEmail?: string;
     isAdminCreated: boolean;
@@ -38,6 +44,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [pendingArtworks, setPendingArtworks] = useState<Artwork[]>([]);
@@ -46,16 +53,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Initialize data from storage
   useEffect(() => {
     const loadData = async () => {
-      const [allPrompts, approvedArtworks, pendingArtworksData] = await Promise.all([
-        promptStorage.getAll(),
-        artworkStorage.getApproved(),
-        artworkStorage.getPending(),
-      ]);
+      try {
+        console.log('[AppContext] Starting data load...');
+        const startTime = Date.now();
 
-      setPrompts(allPrompts);
-      setArtworks(approvedArtworks);
-      setPendingArtworks(pendingArtworksData);
-      setIsAdmin(adminStorage.isLoggedIn());
+        const [allPrompts, approvedArtworks, pendingArtworksData] = await Promise.all([
+          promptStorage.getAll().then(data => {
+            console.log('[AppContext] Prompts loaded:', data.length);
+            return data;
+          }),
+          artworkStorage.getApproved().then(data => {
+            console.log('[AppContext] Artworks loaded:', data.length);
+            return data;
+          }),
+          artworkStorage.getPending().then(data => {
+            console.log('[AppContext] Pending artworks loaded:', data.length);
+            return data;
+          }),
+        ]);
+
+        const loadTime = Date.now() - startTime;
+        console.log(`[AppContext] Data loaded in ${loadTime}ms`);
+
+        // Enrich artworks with prompt numbers if missing
+        const enrichedArtworks = approvedArtworks.map(artwork => {
+          if (!artwork.promptNumber && artwork.promptId) {
+            const prompt = allPrompts.find(p => p.id === artwork.promptId);
+            if (prompt?.promptNumber) {
+              return { ...artwork, promptNumber: prompt.promptNumber };
+            }
+          }
+          return artwork;
+        });
+
+        setPrompts(allPrompts);
+        setArtworks(enrichedArtworks);
+        setPendingArtworks(pendingArtworksData);
+        setIsAdmin(adminStorage.isLoggedIn());
+      } catch (error) {
+        console.error('[AppContext] Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
@@ -78,6 +117,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setPrompts(prev => prev.filter(p => p.id !== id));
   }, []);
 
+  const addEmailToPrompt = useCallback(async (id: string, email: string) => {
+    await promptStorage.addEmail(id, email);
+    setPrompts(prev => prev.map(p => p.id === id ? { ...p, email } : p));
+  }, []);
+
   const refreshPrompts = useCallback(async () => {
     const allPrompts = await promptStorage.getAll();
     setPrompts(allPrompts);
@@ -88,6 +132,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     imageData: string;
     promptId?: string;
     promptText?: string;
+    promptNumber?: number;
     artistName?: string;
     artistEmail?: string;
     isAdminCreated: boolean;
@@ -154,10 +199,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value: AppContextType = {
+    isLoading,
     prompts,
     addPrompt,
     updatePrompt,
     deletePrompt,
+    addEmailToPrompt,
     refreshPrompts,
     artworks,
     pendingArtworks,

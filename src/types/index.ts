@@ -16,6 +16,7 @@ export interface Prompt {
 export interface Artwork {
   id: string;
   promptId?: string;
+  promptText?: string;
   promptNumber: number;
   imageData: string; // base64 encoded image
   artistName?: string;

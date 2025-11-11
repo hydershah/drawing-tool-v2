@@ -10,6 +10,7 @@ import { AppProvider, useApp } from './contexts/AppContext';
 import { Logo } from './components/layout/Logo';
 import { ThemeToggle } from './components/layout/ThemeToggle';
 import { BookInfo } from './components/BookInfo';
+import { AboutSidebar } from './components/layout/AboutSidebar';
 import { Button } from './components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './components/ui/Tooltip';
 import { HomePage } from './pages/HomePage';
@@ -30,7 +31,7 @@ import {
   CheckSquare,
   Settings,
 } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 /**
  * Navigation Button Component
@@ -89,15 +90,24 @@ function FixedNav() {
   const { isAdmin, logout } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogoClick = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
+    // If on home page, toggle sidebar; otherwise navigate home
+    if (location.pathname === '/') {
+      setIsSidebarOpen(prev => !prev);
+    } else {
+      navigate('/');
+    }
+  }, [location.pathname, navigate]);
 
   return (
     <>
+      {/* About Sidebar */}
+      <AboutSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
       {/* Logo in top-left */}
-      <Logo onClick={handleLogoClick} />
+      <Logo onClick={handleLogoClick} isOpen={isSidebarOpen} />
 
       {/* Navigation icons in top-right */}
       <div className="fixed top-2 right-2 md:top-4 md:right-4 flex gap-2 md:gap-4 z-50">

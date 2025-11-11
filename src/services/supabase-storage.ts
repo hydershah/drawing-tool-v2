@@ -52,8 +52,13 @@ export const promptStorage = {
       method: 'GET',
     });
 
+    console.log('[promptStorage.getAll] Sample prompt from API:', response.submissions[0]);
+
+    // Sort by creation date (oldest first) to assign sequential numbers
+    const sortedSubmissions = [...response.submissions].sort((a, b) => a.timestamp - b.timestamp);
+
     // Transform API response to Prompt format
-    return response.submissions.map((p: any) => ({
+    const prompts = sortedSubmissions.map((p: any, index: number) => ({
       id: p.id,
       prompt: p.prompt,
       email: p.email || '',
@@ -61,7 +66,14 @@ export const promptStorage = {
       createdAt: p.timestamp,
       ...(p.completedAt && { completedAt: p.completedAt }),
       ...(p.artworkId && { artworkId: p.artworkId }),
+      // If backend doesn't provide promptNumber, generate it from index (1-based)
+      promptNumber: p.promptNumber || (index + 1),
     }));
+
+    console.log('[promptStorage.getAll] Transformed prompts sample:', prompts[0]);
+
+    // Sort back to newest first for display
+    return prompts.sort((a, b) => b.createdAt - a.createdAt);
   },
 
   async create(prompt: string, email: string): Promise<Prompt> {
@@ -103,19 +115,25 @@ export const artworkStorage = {
       method: 'GET',
     });
 
+    console.log('[artworkStorage.getAll] Sample artwork from API:', response.artworks[0]);
+
     // Transform API response to Artwork format
-    return response.artworks.map((a: any) => ({
+    const artworks = response.artworks.map((a: any) => ({
       id: a.id,
-      promptNumber: a.prompt_number || 0,
+      promptNumber: a.prompt_number || a.promptNumber || 0,
+      promptText: a.prompt || a.promptText || a.prompt_text,
       imageData: a.imageData,
-      promptId: a.promptId,
-      artistName: a.artistName,
-      artistEmail: a.artistEmail,
+      promptId: a.promptId || a.prompt_id,
+      artistName: a.artistName || a.artist_name,
+      artistEmail: a.artistEmail || a.artist_email,
       status: 'approved' as const,
       createdAt: a.timestamp,
       approvedAt: a.approvedAt || a.timestamp,
       isAdminCreated: a.type !== 'user_artwork',
     }));
+
+    console.log('[artworkStorage.getAll] Transformed artwork sample:', artworks[0]);
+    return artworks;
   },
 
   async getApproved(): Promise<Artwork[]> {
@@ -127,17 +145,23 @@ export const artworkStorage = {
       method: 'GET',
     });
 
-    return response.artworks.map((a: any) => ({
+    console.log('[artworkStorage.getPending] Sample pending artwork from API:', response.artworks[0]);
+
+    const pendingArtworks = response.artworks.map((a: any) => ({
       id: a.id,
       promptNumber: 0,
       imageData: a.imageUrl || a.imageData, // API returns imageUrl for pending artworks
-      promptId: a.promptId,
-      artistName: a.artistName,
-      artistEmail: a.artistEmail,
+      promptId: a.promptId || a.prompt_id,
+      promptText: a.prompt || a.promptText || a.prompt_text,
+      artistName: a.artistName || a.artist_name,
+      artistEmail: a.artistEmail || a.artist_email,
       status: 'pending' as const,
       createdAt: a.timestamp,
       isAdminCreated: false,
     }));
+
+    console.log('[artworkStorage.getPending] Transformed pending artwork:', pendingArtworks[0]);
+    return pendingArtworks;
   },
 
   async getById(id: string): Promise<Artwork | undefined> {
@@ -154,6 +178,8 @@ export const artworkStorage = {
   async create(data: {
     imageData: string;
     promptId?: string;
+    promptText?: string;
+    promptNumber?: number;
     artistName?: string;
     artistEmail?: string;
     isAdminCreated: boolean;
@@ -179,21 +205,41 @@ export const artworkStorage = {
       };
     } else {
       // User artwork submission
+      // Format promptNumber as 5-digit string (e.g., 00001, 00002)
+      const formattedPromptNumber = data.promptNumber
+        ? String(data.promptNumber).padStart(5, '0')
+        : '00000';
+
+      const payload: any = {
+        promptId: data.promptId,
+        prompt: data.promptText || '',
+        promptName: data.promptText || '',
+        promptNumber: formattedPromptNumber,
+        imageData: data.imageData,
+        artistName: data.artistName || '',
+      };
+
+      // Only include artistEmail if it's provided
+      if (data.artistEmail) {
+        payload.artistEmail = data.artistEmail;
+      }
+
+      console.log('[artworkStorage.create] Submitting user artwork with payload:', {
+        ...payload,
+        imageData: payload.imageData ? `${payload.imageData.substring(0, 50)}... (${payload.imageData.length} chars)` : 'none',
+      });
+
       const response = await apiCall<{ success: boolean; id: string }>('submit-artwork', {
         method: 'POST',
-        body: JSON.stringify({
-          prompt: '', // Will be linked via promptId
-          imageData: data.imageData,
-          artistName: data.artistName || '',
-          artistEmail: data.artistEmail || '',
-        }),
+        body: JSON.stringify(payload),
       });
 
       return {
         id: response.id,
-        promptNumber: 0,
+        promptNumber: data.promptNumber || 0,
         imageData: data.imageData,
         promptId: data.promptId,
+        promptText: data.promptText,
         artistName: data.artistName,
         artistEmail: data.artistEmail,
         status: 'pending',

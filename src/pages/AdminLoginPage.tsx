@@ -22,7 +22,7 @@ export function AdminLoginPage() {
 
     if (login(password)) {
       toast.success('Login successful!');
-      navigate('/admin/draw');
+      navigate('/admin/approvals');
     } else {
       toast.error('Invalid password');
     }

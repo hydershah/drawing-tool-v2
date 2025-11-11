@@ -5,12 +5,15 @@
 
 interface LogoProps {
   onClick?: () => void;
+  isOpen?: boolean;
 }
 
-export function Logo({ onClick }: LogoProps) {
+export function Logo({ onClick, isOpen = false }: LogoProps) {
   return (
     <div
-      className="fixed top-4 left-4 w-14 h-14 cursor-pointer relative z-50"
+      className={`fixed top-4 left-4 w-14 h-14 cursor-pointer relative z-50 transition-transform duration-300 ${
+        isOpen ? 'rotate-90' : 'rotate-0'
+      }`}
       onClick={onClick}
     >
       {/* Light theme logo */}

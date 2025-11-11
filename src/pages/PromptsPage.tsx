@@ -9,7 +9,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Separator } from '@/components/ui/Separator';
-import { Search, CheckCircle2, Paintbrush } from 'lucide-react';
+import { Search, CheckCircle2, Paintbrush, Loader2 } from 'lucide-react';
 import { formatDate } from '@/utils/format';
 
 function PromptItem({
@@ -21,7 +21,9 @@ function PromptItem({
   isLast: boolean;
   onDrawClick: (prompt: any) => void;
 }) {
-  const formattedPromptNumber = `#${String(prompt.id).padStart(5, '0')}`;
+  const formattedPromptNumber = prompt.promptNumber
+    ? `#${String(prompt.promptNumber).padStart(5, '0')}`
+    : '#00000';
   const formattedDate = formatDate(prompt.createdAt);
 
   return (
@@ -88,7 +90,7 @@ function PromptItem({
 }
 
 export function PromptsPage() {
-  const { prompts } = useApp();
+  const { prompts, isLoading } = useApp();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -114,6 +116,19 @@ export function PromptsPage() {
     const lowerQuery = searchQuery.toLowerCase();
     return prompts.filter((prompt) => prompt.prompt.toLowerCase().includes(lowerQuery));
   }, [prompts, searchQuery]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            Loading prompts...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 mt-24 px-8">
