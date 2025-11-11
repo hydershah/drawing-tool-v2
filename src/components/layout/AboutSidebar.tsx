@@ -3,7 +3,7 @@
  * Sliding sidebar with project information that opens on logo click
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 interface AboutSidebarProps {
@@ -11,8 +11,54 @@ interface AboutSidebarProps {
   onClose: () => void;
 }
 
+interface AboutContent {
+  aboutProjectDescription: string;
+  aboutFeatures: string;
+  aboutBrushEngine: string;
+  aboutHowItWorks: string;
+  aboutDesignPhilosophy: string;
+}
+
+const DEFAULT_ABOUT_CONTENT: AboutContent = {
+  aboutProjectDescription: 'Prompt-Brush 2.0 is a web-based drawing application featuring a realistic brush drawing tool that creates organic, variable-thickness strokes mimicking real brush behavior with black ink on a warm beige artboard background.',
+  aboutFeatures: `500x700px portrait canvas with warm beige (#f4efe9) background
+Speed-sensitive brush with natural texture and grain
+Email functionality to send artwork as PNG attachments
+Community gallery with admin approval system
+User submission system for prompt-based artwork
+Dark/light mode toggle
+Minimalistic icon-based navigation`,
+  aboutBrushEngine: 'The brush engine uses advanced techniques including speed-sensitive line weight, multiple overlapping circles for natural texture, and random micro-variations to create authentic brush grain with darker cores and lighter semi-transparent edges.',
+  aboutHowItWorks: `Browse available prompts from the gallery
+Select a prompt that inspires you
+Create your artwork using the brush tool
+Submit your work for admin approval
+Once approved, your artwork appears in the public gallery`,
+  aboutDesignPhilosophy: 'Prompt-Brush 2.0 embraces a minimalistic design with a focus on the creative process. The interface stays out of your way, letting you concentrate on your art while providing all the tools you need for expressive brush work.',
+};
+
+function loadAboutContent(): AboutContent {
+  try {
+    const stored = localStorage.getItem('site_content');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        aboutProjectDescription: parsed.aboutProjectDescription || DEFAULT_ABOUT_CONTENT.aboutProjectDescription,
+        aboutFeatures: parsed.aboutFeatures || DEFAULT_ABOUT_CONTENT.aboutFeatures,
+        aboutBrushEngine: parsed.aboutBrushEngine || DEFAULT_ABOUT_CONTENT.aboutBrushEngine,
+        aboutHowItWorks: parsed.aboutHowItWorks || DEFAULT_ABOUT_CONTENT.aboutHowItWorks,
+        aboutDesignPhilosophy: parsed.aboutDesignPhilosophy || DEFAULT_ABOUT_CONTENT.aboutDesignPhilosophy,
+      };
+    }
+  } catch (error) {
+    console.error('Error loading about content:', error);
+  }
+  return DEFAULT_ABOUT_CONTENT;
+}
+
 export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [content, setContent] = useState<AboutContent>(loadAboutContent());
 
   // Handle click outside to close
   useEffect(() => {
@@ -58,6 +104,18 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
     };
   }, [isOpen, onClose]);
 
+  // Listen for content updates
+  useEffect(() => {
+    function handleContentUpdate() {
+      setContent(loadAboutContent());
+    }
+
+    window.addEventListener('siteContentUpdated', handleContentUpdate);
+    return () => {
+      window.removeEventListener('siteContentUpdated', handleContentUpdate);
+    };
+  }, []);
+
   return (
     <>
       {/* Overlay */}
@@ -89,9 +147,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">About the Project</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Prompt-Brush 2.0 is a web-based drawing application featuring a realistic brush
-              drawing tool that creates organic, variable-thickness strokes mimicking real brush
-              behavior with black ink on a warm beige artboard background.
+              {content.aboutProjectDescription}
             </p>
           </section>
 
@@ -99,34 +155,12 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Features</h2>
             <ul className="space-y-2 text-muted-foreground">
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>500x700px portrait canvas with warm beige (#f4efe9) background</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Speed-sensitive brush with natural texture and grain</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Email functionality to send artwork as PNG attachments</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Community gallery with admin approval system</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>User submission system for prompt-based artwork</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Dark/light mode toggle</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Minimalistic icon-based navigation</span>
-              </li>
+              {content.aboutFeatures.split('\n').filter(line => line.trim()).map((feature, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{feature.trim()}</span>
+                </li>
+              ))}
             </ul>
           </section>
 
@@ -134,9 +168,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Brush Engine</h2>
             <p className="text-muted-foreground leading-relaxed">
-              The brush engine uses advanced techniques including speed-sensitive line weight,
-              multiple overlapping circles for natural texture, and random micro-variations to
-              create authentic brush grain with darker cores and lighter semi-transparent edges.
+              {content.aboutBrushEngine}
             </p>
           </section>
 
@@ -144,11 +176,9 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">How It Works</h2>
             <ol className="space-y-2 text-muted-foreground list-decimal list-inside">
-              <li>Browse available prompts from the gallery</li>
-              <li>Select a prompt that inspires you</li>
-              <li>Create your artwork using the brush tool</li>
-              <li>Submit your work for admin approval</li>
-              <li>Once approved, your artwork appears in the public gallery</li>
+              {content.aboutHowItWorks.split('\n').filter(line => line.trim()).map((step, index) => (
+                <li key={index}>{step.trim()}</li>
+              ))}
             </ol>
           </section>
 
@@ -156,9 +186,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
           <section>
             <h2 className="text-2xl font-bold mb-4">Design Philosophy</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Prompt-Brush 2.0 embraces a minimalistic design with a focus on the creative process.
-              The interface stays out of your way, letting you concentrate on your art while
-              providing all the tools you need for expressive brush work.
+              {content.aboutDesignPhilosophy}
             </p>
           </section>
         </div>

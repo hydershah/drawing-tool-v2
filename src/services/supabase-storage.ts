@@ -104,6 +104,12 @@ export const promptStorage = {
       body: JSON.stringify({ promptId: id, email }),
     });
   },
+
+  async complete(id: string): Promise<void> {
+    await apiCall(`prompts/${id}/complete`, {
+      method: 'PATCH',
+    });
+  },
 };
 
 /**
@@ -120,16 +126,16 @@ export const artworkStorage = {
     // Transform API response to Artwork format
     const artworks = response.artworks.map((a: any) => ({
       id: a.id,
-      promptNumber: a.prompt_number || a.promptNumber || 0,
+      promptNumber: a.promptNumber ?? a.prompt_number ?? null,
       promptText: a.prompt || a.promptText || a.prompt_text,
-      imageData: a.imageData,
-      promptId: a.promptId || a.prompt_id,
-      artistName: a.artistName || a.artist_name,
-      artistEmail: a.artistEmail || a.artist_email,
+      imageData: a.imageData ?? a.image_data,
+      promptId: a.promptId ?? a.prompt_id ?? null,
+      artistName: a.artistName ?? a.artist_name ?? null,
+      artistEmail: a.artistEmail ?? a.artist_email ?? null,
       status: 'approved' as const,
-      createdAt: a.timestamp,
-      approvedAt: a.approvedAt || a.timestamp,
-      isAdminCreated: a.type !== 'user_artwork',
+      createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
+      approvedAt: a.approvedAt ?? a.approved_at ?? a.timestamp ?? null,
+      isAdminCreated: a.isAdminCreated ?? a.is_admin_created ?? (a.type !== 'user_artwork'),
     }));
 
     console.log('[artworkStorage.getAll] Transformed artwork sample:', artworks[0]);
@@ -149,14 +155,14 @@ export const artworkStorage = {
 
     const pendingArtworks = response.artworks.map((a: any) => ({
       id: a.id,
-      promptNumber: 0,
-      imageData: a.imageUrl || a.imageData, // API returns imageUrl for pending artworks
-      promptId: a.promptId || a.prompt_id,
+      promptNumber: a.promptNumber ?? a.prompt_number ?? null,
+      imageData: a.imageUrl ?? a.imageData ?? a.image_data,
+      promptId: a.promptId ?? a.prompt_id ?? null,
       promptText: a.prompt || a.promptText || a.prompt_text,
-      artistName: a.artistName || a.artist_name,
-      artistEmail: a.artistEmail || a.artist_email,
+      artistName: a.artistName ?? a.artist_name ?? null,
+      artistEmail: a.artistEmail ?? a.artist_email ?? null,
       status: 'pending' as const,
-      createdAt: a.timestamp,
+      createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
       isAdminCreated: false,
     }));
 
@@ -196,7 +202,7 @@ export const artworkStorage = {
 
       return {
         id: response.id,
-        promptNumber: 0,
+        promptNumber: data.promptNumber ?? null,
         imageData: data.imageData,
         status: 'approved',
         createdAt: Date.now(),

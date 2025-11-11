@@ -15,15 +15,15 @@ export interface Prompt {
 
 export interface Artwork {
   id: string;
-  promptId?: string;
+  promptId?: string | null;
   promptText?: string;
-  promptNumber: number;
+  promptNumber?: number | null;
   imageData: string; // base64 encoded image
-  artistName?: string;
-  artistEmail?: string;
+  artistName?: string | null;
+  artistEmail?: string | null;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: number;
-  approvedAt?: number;
+  approvedAt?: number | null;
   isAdminCreated: boolean;
 }
 

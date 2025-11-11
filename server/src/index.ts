@@ -107,6 +107,29 @@ app.patch('/api/prompts/:id', async (req, res) => {
   }
 });
 
+// Mark prompt as completed
+app.patch('/api/prompts/:id/complete', async (req, res) => {
+  try {
+    const updated = await db.update(schema.prompts)
+      .set({
+        status: 'completed',
+        completedAt: new Date(),
+      })
+      .where(eq(schema.prompts.id, req.params.id))
+      .returning();
+
+    if (updated.length === 0) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+
+    console.log(`[Complete Prompt] Marked prompt ${req.params.id} as completed`);
+    res.json(updated[0]);
+  } catch (error) {
+    console.error('Error completing prompt:', error);
+    res.status(500).json({ error: 'Failed to complete prompt' });
+  }
+});
+
 // Delete prompt
 app.delete('/api/prompts/:id', async (req, res) => {
   try {
@@ -266,6 +289,23 @@ app.patch('/api/artworks/:id/approve', async (req, res) => {
     }
 
     const artwork = updated[0];
+
+    // Mark prompt as completed if this artwork is linked to a prompt
+    if (artwork.promptId) {
+      try {
+        await db.update(schema.prompts)
+          .set({
+            status: 'completed',
+            completedAt: new Date(),
+            artworkId: artwork.id,
+          })
+          .where(eq(schema.prompts.id, artwork.promptId));
+
+        console.log(`[Approve Artwork] Marked prompt ${artwork.promptId} as completed`);
+      } catch (err) {
+        console.error(`[Approve Artwork] Error updating prompt status for ${artwork.promptId}:`, err);
+      }
+    }
 
     // Email 3: Send approval email to artist (don't block response)
     if (artwork.artistEmail && emailService.validateEmail(artwork.artistEmail)) {

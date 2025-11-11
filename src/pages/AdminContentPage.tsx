@@ -6,8 +6,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import { toast } from 'sonner';
-import { Save, RotateCcw, BookOpen, Info } from 'lucide-react';
+import { Save, RotateCcw, BookOpen, Info, FileText } from 'lucide-react';
 
 interface SiteContent {
   bookTitle: string;
@@ -16,6 +17,11 @@ interface SiteContent {
   bookshopUrl: string;
   barnesNobleUrl: string;
   projectDescription: string;
+  aboutProjectDescription: string;
+  aboutFeatures: string;
+  aboutBrushEngine: string;
+  aboutHowItWorks: string;
+  aboutDesignPhilosophy: string;
 }
 
 const DEFAULT_CONTENT: SiteContent = {
@@ -25,6 +31,21 @@ const DEFAULT_CONTENT: SiteContent = {
   bookshopUrl: 'https://bookshop.org/p/books/prompt-brush-1-0-500-drawing-prompts-for-daily-practice-and-wild-illustrations-hyder-jaffrey/21703254',
   barnesNobleUrl: 'https://www.barnesandnoble.com/w/prompt-brush-10-hyder-jaffrey/1146466982',
   projectDescription: '500 Drawing Prompts for Daily Practice and Wild Illustrations',
+  aboutProjectDescription: 'Prompt-Brush 2.0 is a web-based drawing application featuring a realistic brush drawing tool that creates organic, variable-thickness strokes mimicking real brush behavior with black ink on a warm beige artboard background.',
+  aboutFeatures: `500x700px portrait canvas with warm beige (#f4efe9) background
+Speed-sensitive brush with natural texture and grain
+Email functionality to send artwork as PNG attachments
+Community gallery with admin approval system
+User submission system for prompt-based artwork
+Dark/light mode toggle
+Minimalistic icon-based navigation`,
+  aboutBrushEngine: 'The brush engine uses advanced techniques including speed-sensitive line weight, multiple overlapping circles for natural texture, and random micro-variations to create authentic brush grain with darker cores and lighter semi-transparent edges.',
+  aboutHowItWorks: `Browse available prompts from the gallery
+Select a prompt that inspires you
+Create your artwork using the brush tool
+Submit your work for admin approval
+Once approved, your artwork appears in the public gallery`,
+  aboutDesignPhilosophy: 'Prompt-Brush 2.0 embraces a minimalistic design with a focus on the creative process. The interface stays out of your way, letting you concentrate on your art while providing all the tools you need for expressive brush work.',
 };
 
 const STORAGE_KEY = 'site_content';
@@ -246,6 +267,101 @@ export function AdminContentPage() {
                 onChange={(e) => handleChange('projectDescription', e.target.value)}
                 placeholder="Brief project description"
                 className="text-[13px]"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* About Sidebar Content Section */}
+        <div className="space-y-6 p-6 bg-card border border-border rounded-lg">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-muted-foreground" />
+            <h2
+              className="text-[14px] font-medium"
+              style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+            >
+              About Sidebar Content
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label
+                className="text-[12px] text-muted-foreground"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              >
+                About the Project
+              </label>
+              <Textarea
+                value={content.aboutProjectDescription}
+                onChange={(e) => handleChange('aboutProjectDescription', e.target.value)}
+                placeholder="Description of the project"
+                className="text-[13px] min-h-[100px]"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                className="text-[12px] text-muted-foreground"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              >
+                Features (one per line)
+              </label>
+              <Textarea
+                value={content.aboutFeatures}
+                onChange={(e) => handleChange('aboutFeatures', e.target.value)}
+                placeholder="List features, one per line"
+                className="text-[13px] min-h-[120px]"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                className="text-[12px] text-muted-foreground"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              >
+                Brush Engine
+              </label>
+              <Textarea
+                value={content.aboutBrushEngine}
+                onChange={(e) => handleChange('aboutBrushEngine', e.target.value)}
+                placeholder="Description of the brush engine"
+                className="text-[13px] min-h-[100px]"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                className="text-[12px] text-muted-foreground"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              >
+                How It Works (one step per line)
+              </label>
+              <Textarea
+                value={content.aboutHowItWorks}
+                onChange={(e) => handleChange('aboutHowItWorks', e.target.value)}
+                placeholder="List steps, one per line"
+                className="text-[13px] min-h-[120px]"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                className="text-[12px] text-muted-foreground"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              >
+                Design Philosophy
+              </label>
+              <Textarea
+                value={content.aboutDesignPhilosophy}
+                onChange={(e) => handleChange('aboutDesignPhilosophy', e.target.value)}
+                placeholder="Design philosophy description"
+                className="text-[13px] min-h-[100px]"
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               />
             </div>

@@ -29,10 +29,11 @@ interface PromptItemProps {
   isLast: boolean;
   onDelete: (id: string) => void;
   onAddEmail: (id: string, email: string) => void;
+  onComplete: (id: string) => void;
   isProcessing: boolean;
 }
 
-function PromptItem({ prompt, isLast, onDelete, onAddEmail, isProcessing }: PromptItemProps) {
+function PromptItem({ prompt, isLast, onDelete, onAddEmail, onComplete, isProcessing }: PromptItemProps) {
   const [isAddingEmail, setIsAddingEmail] = useState(false);
   const [emailInput, setEmailInput] = useState('');
 
@@ -156,6 +157,18 @@ function PromptItem({ prompt, isLast, onDelete, onAddEmail, isProcessing }: Prom
 
           {/* Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {prompt.status === 'pending' && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onComplete(prompt.id)}
+                disabled={isProcessing}
+                className="h-8 px-3 text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                aria-label="Mark as completed"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+              </Button>
+            )}
             <Button
               size="sm"
               variant="ghost"
@@ -179,7 +192,7 @@ function PromptItem({ prompt, isLast, onDelete, onAddEmail, isProcessing }: Prom
 }
 
 export function AdminPromptsPage() {
-  const { prompts, deletePrompt, addEmailToPrompt, isLoading } = useApp();
+  const { prompts, deletePrompt, addEmailToPrompt, completePrompt, isLoading } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -227,6 +240,22 @@ export function AdminPromptsPage() {
       }
     },
     [addEmailToPrompt]
+  );
+
+  const handleComplete = useCallback(
+    async (id: string) => {
+      setProcessingId(id);
+      try {
+        await completePrompt(id);
+        toast.success('Prompt marked as completed');
+      } catch (err) {
+        console.error('Error completing prompt:', err);
+        toast.error('Failed to complete prompt');
+      } finally {
+        setProcessingId(null);
+      }
+    },
+    [completePrompt]
   );
 
   const handleRefresh = useCallback(() => {
@@ -482,6 +511,7 @@ export function AdminPromptsPage() {
                 isLast={index === filteredPrompts.length - 1}
                 onDelete={handleDelete}
                 onAddEmail={handleAddEmail}
+                onComplete={handleComplete}
                 isProcessing={processingId === prompt.id}
               />
             ))}

@@ -5,7 +5,8 @@
 /**
  * Format a prompt number with leading zeros (e.g., 1 -> #00001)
  */
-export function formatPromptNumber(num: number): string {
+export function formatPromptNumber(num?: number | null): string {
+  if (num == null) return '#-----';
   return `#${num.toString().padStart(5, '0')}`;
 }
 

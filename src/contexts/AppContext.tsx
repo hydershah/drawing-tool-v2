@@ -16,6 +16,7 @@ interface AppContextType {
   updatePrompt: (id: string, updates: Partial<Prompt>) => void;
   deletePrompt: (id: string) => void;
   addEmailToPrompt: (id: string, email: string) => Promise<void>;
+  completePrompt: (id: string) => Promise<void>;
   refreshPrompts: () => void;
 
   // Artworks
@@ -163,6 +164,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setPrompts(prev => prev.map(p => p.id === id ? { ...p, email } : p));
   }, []);
 
+  const completePrompt = useCallback(async (id: string) => {
+    // Optimistic update - instant UI feedback
+    const originalPrompt = prompts.find(p => p.id === id);
+
+    // Update UI immediately
+    setPrompts(prev => prev.map(p => p.id === id ? {
+      ...p,
+      status: 'completed' as const,
+      completedAt: Date.now(),
+    } : p));
+
+    // Sync with backend in background
+    try {
+      await promptStorage.complete(id);
+    } catch (error) {
+      console.error('Failed to complete prompt:', error);
+      // Revert on error
+      if (originalPrompt) {
+        setPrompts(prev => prev.map(p => p.id === id ? originalPrompt : p));
+      }
+      throw error;
+    }
+  }, [prompts]);
+
   const refreshPrompts = useCallback(async () => {
     const allPrompts = await promptStorage.getAll();
     setPrompts(allPrompts);
@@ -254,13 +279,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Sync with backend in background
     try {
       await artworkStorage.approve(id);
+
+      // Refresh prompts to get updated completion status
+      if (pendingArtwork.promptId) {
+        refreshPrompts();
+      }
     } catch (error) {
       console.error('Failed to approve artwork:', error);
       // Revert on error
       setPendingArtworks(prev => [pendingArtwork, ...prev]);
       setArtworks(prev => prev.filter(a => a.id !== id));
     }
-  }, [pendingArtworks]);
+  }, [pendingArtworks, refreshPrompts]);
 
   const rejectArtwork = useCallback(async (id: string) => {
     // Optimistic update - instant UI feedback
@@ -337,6 +367,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updatePrompt,
     deletePrompt,
     addEmailToPrompt,
+    completePrompt,
     refreshPrompts,
     artworks,
     pendingArtworks,

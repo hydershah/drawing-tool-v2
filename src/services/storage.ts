@@ -139,7 +139,11 @@ export const artworkStorage = {
     try {
       const artworks = await db.artworks.toArray();
       if (artworks.length === 0) return 1;
-      return Math.max(...artworks.map(a => a.promptNumber)) + 1;
+      const promptNumbers = artworks
+        .map(a => a.promptNumber)
+        .filter((n): n is number => n != null);
+      if (promptNumbers.length === 0) return 1;
+      return Math.max(...promptNumbers) + 1;
     } catch (error) {
       console.error('Error getting next prompt number:', error);
       return 1;
