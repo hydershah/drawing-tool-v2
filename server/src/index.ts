@@ -5,6 +5,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { db, schema } from './db';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import * as emailService from './email';
@@ -376,10 +377,24 @@ app.put('/api/site-content', async (req, res) => {
 });
 
 // ============================================
+// SERVE STATIC FILES (PRODUCTION)
+// ============================================
+
+// Serve static files from the frontend build directory
+const frontendDistPath = path.join(__dirname, '../../dist');
+app.use(express.static(frontendDistPath));
+
+// Handle React Router - send all non-API requests to index.html
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
+
+// ============================================
 // START SERVER
 // ============================================
 
 app.listen(PORT, () => {
   console.log(`[Server] Running on port ${PORT}`);
   console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`[Server] Serving frontend from: ${frontendDistPath}`);
 });
