@@ -34,7 +34,7 @@ app.get('/api/prompts', async (req, res) => {
   try {
     const allPrompts = await db.select()
       .from(schema.prompts)
-      .orderBy(desc(schema.prompts.createdAt));
+      .orderBy(desc(schema.prompts.promptNumber), desc(schema.prompts.createdAt));
 
     res.json(allPrompts);
   } catch (error) {
@@ -133,10 +133,10 @@ app.get('/api/artworks', async (req, res) => {
       ? await db.select()
           .from(schema.artworks)
           .where(eq(schema.artworks.status, status))
-          .orderBy(desc(schema.artworks.createdAt))
+          .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt))
       : await db.select()
           .from(schema.artworks)
-          .orderBy(desc(schema.artworks.createdAt));
+          .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt));
 
     res.json(artworks);
   } catch (error) {
@@ -151,7 +151,7 @@ app.get('/api/artworks/approved', async (req, res) => {
     const artworks = await db.select()
       .from(schema.artworks)
       .where(eq(schema.artworks.status, 'approved'))
-      .orderBy(desc(schema.artworks.createdAt));
+      .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt));
 
     res.json(artworks);
   } catch (error) {
