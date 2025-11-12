@@ -7,7 +7,7 @@ import { backendUrl, publicAnonKey } from '@/utils/supabase/info';
 import type { Prompt, Artwork } from '@/types';
 import * as emailService from './email';
 
-const API_TIMEOUT = 15000; // 15 seconds
+const API_TIMEOUT = 30000; // 30 seconds (increased for large image payloads)
 
 /**
  * Make API call with timeout
