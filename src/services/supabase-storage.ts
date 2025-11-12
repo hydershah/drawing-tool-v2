@@ -78,13 +78,22 @@ export const promptStorage = {
   },
 
   async create(prompt: string, email: string): Promise<Prompt> {
+    console.log('[promptStorage.create] Creating prompt with email:', email);
+
     const response = await apiCall<{ success: boolean; id: string }>('submit-prompt', {
       method: 'POST',
       body: JSON.stringify({ prompt, email }),
     });
 
+    console.log('[promptStorage.create] Prompt created, sending confirmation email...');
+
     // Send confirmation email (non-blocking)
-    emailService.sendPromptSubmissionEmail(email, prompt);
+    try {
+      await emailService.sendPromptSubmissionEmail(email, prompt);
+      console.log('[promptStorage.create] Email service called successfully');
+    } catch (error) {
+      console.error('[promptStorage.create] Error calling email service:', error);
+    }
 
     return {
       id: response.id,
