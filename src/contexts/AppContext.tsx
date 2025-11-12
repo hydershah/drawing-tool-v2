@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { Prompt, Artwork } from '@/types';
 import { promptStorage, artworkStorage, adminStorage } from '@/services/supabase-storage';
+import * as emailService from '@/services/email';
 
 interface AppContextType {
   // Loading state
@@ -303,6 +304,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       await artworkStorage.approve(id);
 
+      // Send approval emails (non-blocking)
+      const promptSubmitterEmail = pendingArtwork.promptId
+        ? prompts.find(p => p.id === pendingArtwork.promptId)?.email
+        : undefined;
+
+      emailService.sendArtworkApprovalEmails(
+        pendingArtwork.artistEmail,
+        pendingArtwork.artistName,
+        promptSubmitterEmail,
+        pendingArtwork.promptText || 'Your prompt'
+      );
+
       // Refresh prompts to get updated completion status
       if (pendingArtwork.promptId) {
         refreshPrompts();
@@ -313,7 +326,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setPendingArtworks(prev => [pendingArtwork, ...prev]);
       setArtworks(prev => prev.filter(a => a.id !== id));
     }
-  }, [pendingArtworks, refreshPrompts]);
+  }, [pendingArtworks, prompts, refreshPrompts]);
 
   const rejectArtwork = useCallback(async (id: string) => {
     // Optimistic update - instant UI feedback

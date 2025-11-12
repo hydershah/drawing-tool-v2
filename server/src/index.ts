@@ -448,6 +448,91 @@ app.put('/api/site-content', async (req, res) => {
 });
 
 // ============================================
+// EMAIL-ONLY ENDPOINTS (for Supabase frontend)
+// ============================================
+
+// Send prompt submission confirmation email
+app.post('/api/emails/prompt-submission', async (req, res) => {
+  try {
+    const { email, prompt } = req.body;
+
+    if (!email || !prompt) {
+      return res.status(400).json({ error: 'Missing email or prompt' });
+    }
+
+    const result = await emailService.sendPromptSubmissionEmail(email, prompt);
+
+    if (result.success) {
+      res.json({ success: true, emailId: result.emailId });
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('Error sending prompt submission email:', error);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
+});
+
+// Send artwork submission confirmation email
+app.post('/api/emails/artwork-submission', async (req, res) => {
+  try {
+    const { artistEmail, artistName, prompt, imageData } = req.body;
+
+    if (!artistEmail || !prompt || !imageData) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = await emailService.sendArtworkSubmissionEmail(
+      artistEmail,
+      artistName || 'Artist',
+      prompt,
+      imageData
+    );
+
+    if (result.success) {
+      res.json({ success: true, emailId: result.emailId });
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('Error sending artwork submission email:', error);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
+});
+
+// Send artwork approval emails (to both artist and prompt submitter)
+app.post('/api/emails/artwork-approved', async (req, res) => {
+  try {
+    const { artistEmail, artistName, promptSubmitterEmail, prompt } = req.body;
+
+    const results = { artist: null, promptSubmitter: null };
+
+    // Send email to artist if provided
+    if (artistEmail && emailService.validateEmail(artistEmail)) {
+      results.artist = await emailService.sendArtworkApprovedEmail(
+        artistEmail,
+        artistName || 'Artist',
+        prompt || 'Your artwork'
+      );
+    }
+
+    // Send email to prompt submitter if provided
+    if (promptSubmitterEmail && emailService.validateEmail(promptSubmitterEmail)) {
+      results.promptSubmitter = await emailService.sendPromptArtworkApprovedEmail(
+        promptSubmitterEmail,
+        prompt || 'Your prompt',
+        artistName || 'An artist'
+      );
+    }
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Error sending artwork approval emails:', error);
+    res.status(500).json({ error: 'Failed to send emails' });
+  }
+});
+
+// ============================================
 // SERVE STATIC FILES (PRODUCTION)
 // ============================================
 

@@ -5,6 +5,7 @@
 
 import { backendUrl, publicAnonKey } from '@/utils/supabase/info';
 import type { Prompt, Artwork } from '@/types';
+import * as emailService from './email';
 
 const API_TIMEOUT = 15000; // 15 seconds
 
@@ -81,6 +82,9 @@ export const promptStorage = {
       method: 'POST',
       body: JSON.stringify({ prompt, email }),
     });
+
+    // Send confirmation email (non-blocking)
+    emailService.sendPromptSubmissionEmail(email, prompt);
 
     return {
       id: response.id,
@@ -263,6 +267,16 @@ export const artworkStorage = {
       });
 
       console.log('[artworkStorage.create] Backend response:', response);
+
+      // Send confirmation email to artist (non-blocking)
+      if (data.artistEmail) {
+        emailService.sendArtworkSubmissionEmail(
+          data.artistEmail,
+          data.artistName || 'Artist',
+          data.promptText || 'Your artwork',
+          data.imageData
+        );
+      }
 
       return {
         id: response.id,
