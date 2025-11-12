@@ -79,13 +79,6 @@ function ArtworkCard({
         )}
       </div>
 
-      <div
-        className="text-muted-foreground text-xs mb-1"
-        style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-      >
-        {formatPromptNumber(artwork.promptNumber)}
-      </div>
-
       {artwork.promptText && (
         <div
           className="text-muted-foreground text-xs mb-2 line-clamp-2"

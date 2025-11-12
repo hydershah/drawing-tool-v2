@@ -78,14 +78,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         // Enrich artworks with prompt numbers if missing
         const enrichedArtworks = approvedArtworks.map(artwork => {
-          if (!artwork.promptNumber && artwork.promptId) {
-            const prompt = allPrompts.find(p => p.id === artwork.promptId);
+          if (!artwork.promptNumber) {
+            // Try to find prompt by ID first
+            let prompt = artwork.promptId ? allPrompts.find(p => p.id === artwork.promptId) : null;
+
+            // If not found by ID, try to match by prompt text
+            if (!prompt && artwork.promptText) {
+              prompt = allPrompts.find(p => p.prompt === artwork.promptText);
+            }
+
+            console.log('[AppContext] Enriching artwork:', {
+              artworkId: artwork.id,
+              promptId: artwork.promptId,
+              promptText: artwork.promptText?.substring(0, 30),
+              foundPrompt: !!prompt,
+              matchedBy: prompt ? (artwork.promptId ? 'id' : 'text') : 'none',
+              promptNumber: prompt?.promptNumber,
+            });
+
             if (prompt?.promptNumber) {
-              return { ...artwork, promptNumber: prompt.promptNumber };
+              return {
+                ...artwork,
+                promptNumber: prompt.promptNumber,
+                promptText: prompt.prompt,
+                promptId: prompt.id
+              };
             }
           }
           return artwork;
         });
+
+        console.log('[AppContext] Sample enriched artwork:', enrichedArtworks[0]);
 
         setPrompts(allPrompts);
         setArtworks(enrichedArtworks);

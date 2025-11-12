@@ -121,22 +121,33 @@ export const artworkStorage = {
       method: 'GET',
     });
 
-    console.log('[artworkStorage.getAll] Sample artwork from API:', response.artworks[0]);
+    console.log('[artworkStorage.getAll] RAW API Response - Full first artwork:', JSON.stringify(response.artworks[0], null, 2));
+    console.log('[artworkStorage.getAll] RAW API Response - All field names:', Object.keys(response.artworks[0] || {}));
 
     // Transform API response to Artwork format
-    const artworks = response.artworks.map((a: any) => ({
-      id: a.id,
-      promptNumber: a.promptNumber ?? a.prompt_number ?? null,
-      promptText: a.prompt || a.promptText || a.prompt_text,
-      imageData: a.imageData ?? a.image_data,
-      promptId: a.promptId ?? a.prompt_id ?? null,
-      artistName: a.artistName ?? a.artist_name ?? null,
-      artistEmail: a.artistEmail ?? a.artist_email ?? null,
-      status: 'approved' as const,
-      createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
-      approvedAt: a.approvedAt ?? a.approved_at ?? a.timestamp ?? null,
-      isAdminCreated: a.isAdminCreated ?? a.is_admin_created ?? (a.type !== 'user_artwork'),
-    }));
+    const artworks = response.artworks.map((a: any) => {
+      const transformed = {
+        id: a.id,
+        promptNumber: a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? null,
+        promptText: a.prompt || a.promptText || a.prompt_text || a.prompttext || null,
+        imageData: a.imageData ?? a.image_data ?? a.imageurl ?? a.image_url,
+        promptId: a.promptId ?? a.prompt_id ?? a.promptid ?? null,
+        artistName: a.artistName ?? a.artist_name ?? a.artistname ?? null,
+        artistEmail: a.artistEmail ?? a.artist_email ?? a.artistemail ?? null,
+        status: 'approved' as const,
+        createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
+        approvedAt: a.approvedAt ?? a.approved_at ?? a.timestamp ?? null,
+        isAdminCreated: a.isAdminCreated ?? a.is_admin_created ?? (a.type !== 'user_artwork'),
+      };
+
+      console.log('[artworkStorage.getAll] Field extraction check:', {
+        'promptNumber found': a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? 'MISSING',
+        'promptId found': a.promptId ?? a.prompt_id ?? a.promptid ?? 'MISSING',
+        'promptText found': a.prompt ?? a.promptText ?? a.prompt_text ?? a.prompttext ?? 'MISSING',
+      });
+
+      return transformed;
+    });
 
     console.log('[artworkStorage.getAll] Transformed artwork sample:', artworks[0]);
     return artworks;
@@ -151,20 +162,31 @@ export const artworkStorage = {
       method: 'GET',
     });
 
-    console.log('[artworkStorage.getPending] Sample pending artwork from API:', response.artworks[0]);
+    console.log('[artworkStorage.getPending] RAW API Response - Full first artwork:', JSON.stringify(response.artworks[0], null, 2));
+    console.log('[artworkStorage.getPending] RAW API Response - All field names:', Object.keys(response.artworks[0] || {}));
 
-    const pendingArtworks = response.artworks.map((a: any) => ({
-      id: a.id,
-      promptNumber: a.promptNumber ?? a.prompt_number ?? null,
-      imageData: a.imageUrl ?? a.imageData ?? a.image_data,
-      promptId: a.promptId ?? a.prompt_id ?? null,
-      promptText: a.prompt || a.promptText || a.prompt_text,
-      artistName: a.artistName ?? a.artist_name ?? null,
-      artistEmail: a.artistEmail ?? a.artist_email ?? null,
-      status: 'pending' as const,
-      createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
-      isAdminCreated: false,
-    }));
+    const pendingArtworks = response.artworks.map((a: any) => {
+      const transformed = {
+        id: a.id,
+        promptNumber: a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? null,
+        imageData: a.imageUrl ?? a.imageData ?? a.image_data,
+        promptId: a.promptId ?? a.prompt_id ?? a.promptid ?? null,
+        promptText: a.prompt || a.promptText || a.prompt_text || a.prompttext,
+        artistName: a.artistName ?? a.artist_name ?? a.artistname ?? null,
+        artistEmail: a.artistEmail ?? a.artist_email ?? a.artistemail ?? null,
+        status: 'pending' as const,
+        createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
+        isAdminCreated: false,
+      };
+
+      console.log('[artworkStorage.getPending] Field extraction check:', {
+        'promptNumber found': a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? 'MISSING',
+        'promptId found': a.promptId ?? a.prompt_id ?? a.promptid ?? 'MISSING',
+        'promptText found': a.prompt ?? a.promptText ?? a.prompt_text ?? a.prompttext ?? 'MISSING',
+      });
+
+      return transformed;
+    });
 
     console.log('[artworkStorage.getPending] Transformed pending artwork:', pendingArtworks[0]);
     return pendingArtworks;
@@ -240,6 +262,8 @@ export const artworkStorage = {
         body: JSON.stringify(payload),
       });
 
+      console.log('[artworkStorage.create] Backend response:', response);
+
       return {
         id: response.id,
         promptNumber: data.promptNumber || 0,
@@ -256,10 +280,12 @@ export const artworkStorage = {
   },
 
   async approve(id: string): Promise<void> {
-    await apiCall('approve-artwork', {
+    console.log('[artworkStorage.approve] Approving artwork with ID:', id);
+    const response = await apiCall('approve-artwork', {
       method: 'POST',
       body: JSON.stringify({ artworkId: id }),
     });
+    console.log('[artworkStorage.approve] Backend response:', response);
   },
 
   async reject(id: string): Promise<void> {
