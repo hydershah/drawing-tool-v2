@@ -187,6 +187,101 @@ export async function sendArtworkApprovedEmail(
 }
 
 /**
+ * Email 4: Send confirmation email to user when they submit a prompt
+ * No attachment
+ */
+export async function sendPromptSubmissionEmail(
+  email: string,
+  prompt: string
+): Promise<{ success: boolean; emailId?: string; error?: string }> {
+  try {
+    if (!validateEmail(email)) {
+      return { success: false, error: 'Invalid email address' };
+    }
+
+    const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+  <h2 style="color: #333;">Thank You for Your Prompt!</h2>
+  <p style="color: #666; line-height: 1.6;">Thank you for submitting your prompt to <strong>Prompt-Brush 1.0</strong>!</p>
+  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
+    <p style="margin: 0; color: #333;"><strong>Your Prompt:</strong></p>
+    <p style="margin: 8px 0 0 0; color: #666; font-style: italic;">"${prompt.trim()}"</p>
+  </div>
+  <p>Your prompt has been successfully submitted! When an artist draws your prompt, you'll receive an email notification.</p>
+  <p style="color: #999; font-size: 12px; margin-top: 40px;">- The Prompt-Brush Team</p>
+</div>`;
+
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email.trim(),
+      subject: `Prompt Submitted: "${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}"`,
+      html: emailHtml,
+    });
+
+    if (error) {
+      console.error('[Email Service] Prompt submission email error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[Email Service] Prompt submission email sent:', data?.id);
+    return { success: true, emailId: data?.id };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[Email Service] Prompt submission email exception:', errorMsg);
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Email 5: Notify prompt submitter that their prompt's artwork has been approved
+ * No attachment
+ */
+export async function sendPromptArtworkApprovedEmail(
+  promptSubmitterEmail: string,
+  prompt: string,
+  artistName: string
+): Promise<{ success: boolean; emailId?: string; error?: string }> {
+  try {
+    if (!validateEmail(promptSubmitterEmail)) {
+      return { success: false, error: 'Invalid email address' };
+    }
+
+    const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+  <h2 style="color: #333;">Your Prompt is Now Live in the Gallery! 🎉</h2>
+  <p style="color: #666; line-height: 1.6;">Great news! An artwork based on your prompt has been approved and is now live in the gallery.</p>
+  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
+    <p style="margin: 0; color: #333;"><strong>Your Prompt:</strong></p>
+    <p style="margin: 8px 0 0 0; color: #666; font-style: italic;">"${prompt.trim()}"</p>
+  </div>
+  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
+    <p style="margin: 0; color: #333;"><strong>Artist:</strong></p>
+    <p style="margin: 8px 0 0 0; color: #666;">${artistName.trim()}</p>
+  </div>
+  <p>Thank you for contributing to <strong>Prompt-Brush 1.0</strong>!</p>
+  <p style="color: #999; font-size: 12px; margin-top: 40px;">- The Prompt-Brush Team</p>
+</div>`;
+
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: promptSubmitterEmail.trim(),
+      subject: `Your Prompt is Live: "${prompt.substring(0, 40)}${prompt.length > 40 ? '...' : ''}"`,
+      html: emailHtml,
+    });
+
+    if (error) {
+      console.error('[Email Service] Prompt artwork approved email error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[Email Service] Prompt artwork approved email sent:', data?.id);
+    return { success: true, emailId: data?.id };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[Email Service] Prompt artwork approved email exception:', errorMsg);
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
  * Test email configuration
  */
 export async function testEmailConfig(): Promise<{ success: boolean; error?: string }> {

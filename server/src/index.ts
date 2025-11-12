@@ -81,6 +81,16 @@ app.post('/api/prompts', async (req, res) => {
       })
       .returning();
 
+    // Send confirmation email to prompt submitter (don't block response)
+    if (email && emailService.validateEmail(email)) {
+      emailService.sendPromptSubmissionEmail(
+        email,
+        prompt
+      ).catch(err => {
+        console.error('[Prompt Creation] Failed to send submission confirmation email:', err);
+      });
+    }
+
     res.status(201).json(newPrompt[0]);
   } catch (error) {
     console.error('Error creating prompt:', error);
@@ -308,28 +318,49 @@ app.patch('/api/artworks/:id/approve', async (req, res) => {
     }
 
     // Email 3: Send approval email to artist (don't block response)
-    if (artwork.artistEmail && emailService.validateEmail(artwork.artistEmail)) {
-      // Get prompt text if we have a promptId
-      let promptText = 'Your artwork';
-      if (artwork.promptId) {
-        try {
-          const prompts = await db.select()
-            .from(schema.prompts)
-            .where(eq(schema.prompts.id, artwork.promptId))
-            .limit(1);
+    // Email 4: Send approval email to prompt submitter (don't block response)
+    if (artwork.promptId) {
+      try {
+        const prompts = await db.select()
+          .from(schema.prompts)
+          .where(eq(schema.prompts.id, artwork.promptId))
+          .limit(1);
 
-          if (prompts.length > 0) {
-            promptText = prompts[0].prompt;
+        if (prompts.length > 0) {
+          const prompt = prompts[0];
+          const promptText = prompt.prompt;
+
+          // Send approval email to artist
+          if (artwork.artistEmail && emailService.validateEmail(artwork.artistEmail)) {
+            emailService.sendArtworkApprovedEmail(
+              artwork.artistEmail,
+              artwork.artistName || 'Artist',
+              promptText
+            ).catch(err => {
+              console.error('[Approve Artwork] Failed to send artist approval email:', err);
+            });
           }
-        } catch (err) {
-          console.error('[Approve Artwork] Failed to fetch prompt:', err);
-        }
-      }
 
+          // Send approval email to prompt submitter
+          if (prompt.email && emailService.validateEmail(prompt.email)) {
+            emailService.sendPromptArtworkApprovedEmail(
+              prompt.email,
+              promptText,
+              artwork.artistName || 'An artist'
+            ).catch(err => {
+              console.error('[Approve Artwork] Failed to send prompt submitter approval email:', err);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[Approve Artwork] Failed to fetch prompt for emails:', err);
+      }
+    } else if (artwork.artistEmail && emailService.validateEmail(artwork.artistEmail)) {
+      // If no promptId, just send artist approval email with generic text
       emailService.sendArtworkApprovedEmail(
         artwork.artistEmail,
         artwork.artistName || 'Artist',
-        promptText
+        'Your artwork'
       ).catch(err => {
         console.error('[Approve Artwork] Failed to send approval email:', err);
       });
