@@ -61,22 +61,23 @@ function PromptItem({
 
           {/* Right: Status Badge and Draw Button */}
           <div className="flex items-center gap-3 flex-shrink-0 justify-end" style={{ width: '320px' }}>
-            {prompt.status === 'completed' && (
+            {prompt.status === 'completed' ? (
               <div className="px-3 py-1.5 bg-green-500/15 text-green-400 rounded-md text-[11px] font-medium tracking-wide flex items-center gap-1.5 whitespace-nowrap">
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Completed</span>
               </div>
+            ) : (
+              <Button
+                onClick={() => onDrawClick(prompt)}
+                size="sm"
+                variant="outline"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-4 flex-shrink-0"
+                aria-label={`Draw: ${prompt.prompt}`}
+              >
+                <Paintbrush className="w-4 h-4 mr-2" aria-hidden="true" />
+                Draw this prompt
+              </Button>
             )}
-            <Button
-              onClick={() => onDrawClick(prompt)}
-              size="sm"
-              variant="outline"
-              className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-4 flex-shrink-0"
-              aria-label={`Draw: ${prompt.prompt}`}
-            >
-              <Paintbrush className="w-4 h-4 mr-2" aria-hidden="true" />
-              Draw this prompt
-            </Button>
           </div>
         </div>
       </div>
