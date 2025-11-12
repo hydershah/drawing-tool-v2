@@ -29,14 +29,37 @@ app.get('/health', (req, res) => {
 // PROMPTS ENDPOINTS
 // ============================================
 
-// Get all prompts
+// Get all prompts (with pagination)
 app.get('/api/prompts', async (req, res) => {
   try {
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const includeCount = req.query.includeCount === 'true';
+
     const allPrompts = await db.select()
       .from(schema.prompts)
-      .orderBy(desc(schema.prompts.promptNumber), desc(schema.prompts.createdAt));
+      .orderBy(desc(schema.prompts.promptNumber), desc(schema.prompts.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-    res.json(allPrompts);
+    // Optionally include total count for pagination UI
+    if (includeCount) {
+      const countResult = await db.select({ count: sql<number>`count(*)` })
+        .from(schema.prompts);
+      const total = Number(countResult[0].count);
+
+      res.json({
+        data: allPrompts,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + allPrompts.length < total
+        }
+      });
+    } else {
+      res.json(allPrompts);
+    }
   } catch (error) {
     console.error('Error fetching prompts:', error);
     res.status(500).json({ error: 'Failed to fetch prompts' });
@@ -157,36 +180,88 @@ app.delete('/api/prompts/:id', async (req, res) => {
 // ARTWORKS ENDPOINTS
 // ============================================
 
-// Get all artworks
+// Get all artworks (with pagination)
 app.get('/api/artworks', async (req, res) => {
   try {
     const status = req.query.status as string;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const includeCount = req.query.includeCount === 'true';
 
-    const artworks = status
-      ? await db.select()
+    const artworksQuery = status
+      ? db.select()
           .from(schema.artworks)
           .where(eq(schema.artworks.status, status))
           .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt))
-      : await db.select()
+      : db.select()
           .from(schema.artworks)
           .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt));
 
-    res.json(artworks);
+    const artworks = await artworksQuery.limit(limit).offset(offset);
+
+    // Optionally include total count for pagination UI
+    if (includeCount) {
+      const countQuery = status
+        ? db.select({ count: sql<number>`count(*)` })
+            .from(schema.artworks)
+            .where(eq(schema.artworks.status, status))
+        : db.select({ count: sql<number>`count(*)` })
+            .from(schema.artworks);
+
+      const countResult = await countQuery;
+      const total = Number(countResult[0].count);
+
+      res.json({
+        data: artworks,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + artworks.length < total
+        }
+      });
+    } else {
+      res.json(artworks);
+    }
   } catch (error) {
     console.error('Error fetching artworks:', error);
     res.status(500).json({ error: 'Failed to fetch artworks' });
   }
 });
 
-// Get approved artworks (public gallery)
+// Get approved artworks (public gallery with pagination)
 app.get('/api/artworks/approved', async (req, res) => {
   try {
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const includeCount = req.query.includeCount === 'true';
+
     const artworks = await db.select()
       .from(schema.artworks)
       .where(eq(schema.artworks.status, 'approved'))
-      .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt));
+      .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-    res.json(artworks);
+    // Optionally include total count for pagination UI
+    if (includeCount) {
+      const countResult = await db.select({ count: sql<number>`count(*)` })
+        .from(schema.artworks)
+        .where(eq(schema.artworks.status, 'approved'));
+      const total = Number(countResult[0].count);
+
+      res.json({
+        data: artworks,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + artworks.length < total
+        }
+      });
+    } else {
+      res.json(artworks);
+    }
   } catch (error) {
     console.error('Error fetching approved artworks:', error);
     res.status(500).json({ error: 'Failed to fetch artworks' });
@@ -249,9 +324,41 @@ app.post('/api/artworks', async (req, res) => {
         });
       }
 
-      // Email 2: Find matching prompt and notify submitter
-      if (promptText) {
-        // Find prompt by exact text match (case-insensitive)
+      // Email 2: Notify prompt submitter that their prompt was used
+      if (promptId) {
+        // If promptId is provided, use it directly (more reliable)
+        console.log(`[Artwork Creation] Finding prompt by ID: ${promptId}`);
+        db.select()
+          .from(schema.prompts)
+          .where(eq(schema.prompts.id, promptId))
+          .limit(1)
+          .then(matchingPrompts => {
+            if (matchingPrompts.length > 0) {
+              const matchingPrompt = matchingPrompts[0];
+              console.log(`[Artwork Creation] Found prompt by ID, email: ${matchingPrompt.email}`);
+              if (matchingPrompt.email && emailService.validateEmail(matchingPrompt.email)) {
+                emailService.sendPromptUsedEmail(
+                  matchingPrompt.email,
+                  matchingPrompt.prompt,
+                  artistName || 'An artist'
+                ).then(result => {
+                  console.log('[Artwork Creation] Prompt used email sent:', result);
+                }).catch(err => {
+                  console.error('[Artwork Creation] Failed to send prompt submitter email:', err);
+                });
+              } else {
+                console.log('[Artwork Creation] No valid email found for prompt submitter');
+              }
+            } else {
+              console.log(`[Artwork Creation] No prompt found with ID: ${promptId}`);
+            }
+          })
+          .catch(err => {
+            console.error('[Artwork Creation] Failed to find prompt by ID:', err);
+          });
+      } else if (promptText) {
+        // Fallback to text matching if no promptId
+        console.log(`[Artwork Creation] Finding prompt by text match: ${promptText}`);
         db.select()
           .from(schema.prompts)
           .where(sql`LOWER(TRIM(${schema.prompts.prompt})) = LOWER(TRIM(${promptText}))`)
@@ -259,20 +366,29 @@ app.post('/api/artworks', async (req, res) => {
           .then(matchingPrompts => {
             if (matchingPrompts.length > 0) {
               const matchingPrompt = matchingPrompts[0];
+              console.log(`[Artwork Creation] Found prompt by text match, email: ${matchingPrompt.email}`);
               if (matchingPrompt.email && emailService.validateEmail(matchingPrompt.email)) {
                 emailService.sendPromptUsedEmail(
                   matchingPrompt.email,
                   matchingPrompt.prompt,
                   artistName || 'An artist'
-                ).catch(err => {
+                ).then(result => {
+                  console.log('[Artwork Creation] Prompt used email sent:', result);
+                }).catch(err => {
                   console.error('[Artwork Creation] Failed to send prompt submitter email:', err);
                 });
+              } else {
+                console.log('[Artwork Creation] No valid email found for prompt submitter');
               }
+            } else {
+              console.log(`[Artwork Creation] No prompt found matching text: ${promptText}`);
             }
           })
           .catch(err => {
             console.error('[Artwork Creation] Failed to find matching prompt:', err);
           });
+      } else {
+        console.log('[Artwork Creation] No promptId or promptText provided, skipping prompt submitter email');
       }
     }
 

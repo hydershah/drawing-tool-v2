@@ -1,9 +1,10 @@
 /**
  * PromptsPage
  * Browse all submitted prompts from the community
+ * Implements infinite scroll for performance optimization
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +12,9 @@ import { Input } from '@/components/ui/Input';
 import { Separator } from '@/components/ui/Separator';
 import { Search, CheckCircle2, Paintbrush, Loader2 } from 'lucide-react';
 import { formatDate } from '@/utils/format';
+
+// Number of prompts to load initially and per scroll
+const ITEMS_PER_PAGE = 50;
 
 function PromptItem({
   prompt,
@@ -94,6 +98,8 @@ export function PromptsPage() {
   const { prompts, isLoading } = useApp();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -117,6 +123,42 @@ export function PromptsPage() {
     const lowerQuery = searchQuery.toLowerCase();
     return prompts.filter((prompt) => prompt.prompt.toLowerCase().includes(lowerQuery));
   }, [prompts, searchQuery]);
+
+  // Only display a subset of prompts for performance
+  const displayedPrompts = useMemo(() => {
+    return filteredPrompts.slice(0, displayCount);
+  }, [filteredPrompts, displayCount]);
+
+  const hasMore = displayCount < filteredPrompts.length;
+
+  // Reset display count when search query changes
+  useEffect(() => {
+    setDisplayCount(ITEMS_PER_PAGE);
+  }, [searchQuery]);
+
+  // Infinite scroll using Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasMore) {
+          setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        }
+      },
+      { rootMargin: '400px' } // Load more 400px before reaching the end
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore]);
 
   if (isLoading) {
     return (
@@ -223,16 +265,31 @@ export function PromptsPage() {
             </div>
           )}
           <div className="space-y-0" role="list">
-            {filteredPrompts.map((prompt, index) => (
+            {displayedPrompts.map((prompt, index) => (
               <div key={prompt.id} role="listitem">
                 <PromptItem
                   prompt={prompt}
-                  isLast={index === filteredPrompts.length - 1}
+                  isLast={index === displayedPrompts.length - 1}
                   onDrawClick={handleDrawClick}
                 />
               </div>
             ))}
           </div>
+
+          {/* Infinite scroll trigger and loading indicator */}
+          {hasMore && (
+            <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+              <span className="ml-2 text-muted-foreground text-sm">Loading more prompts...</span>
+            </div>
+          )}
+
+          {/* Summary of loaded items */}
+          {!hasMore && filteredPrompts.length > ITEMS_PER_PAGE && (
+            <div className="text-center text-muted-foreground text-sm py-4">
+              Showing all {filteredPrompts.length} prompts
+            </div>
+          )}
         </div>
       )}
     </div>

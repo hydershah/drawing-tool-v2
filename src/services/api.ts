@@ -7,6 +7,25 @@ import type { Prompt, Artwork } from '@/types';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
+ * Pagination types
+ */
+export interface PaginationParams {
+  limit?: number;
+  offset?: number;
+  includeCount?: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
+/**
  * Generic API request handler
  */
 async function apiRequest<T>(
@@ -33,8 +52,27 @@ async function apiRequest<T>(
  * Prompt API
  */
 export const promptAPI = {
-  async getAll(): Promise<Prompt[]> {
-    return apiRequest<Prompt[]>('/api/prompts');
+  async getAll(params?: PaginationParams): Promise<Prompt[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+    if (params?.includeCount) queryParams.set('includeCount', 'true');
+
+    const url = `/api/prompts${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await apiRequest<Prompt[] | PaginatedResponse<Prompt>>(url);
+
+    // Handle both old format (array) and new format (object with data)
+    return Array.isArray(response) ? response : response.data;
+  },
+
+  async getAllPaginated(params?: PaginationParams): Promise<PaginatedResponse<Prompt>> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('includeCount', 'true');
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+
+    const url = `/api/prompts?${queryParams.toString()}`;
+    return apiRequest<PaginatedResponse<Prompt>>(url);
   },
 
   async getById(id: string): Promise<Prompt> {
@@ -64,16 +102,75 @@ export const promptAPI = {
  * Artwork API
  */
 export const artworkAPI = {
-  async getAll(): Promise<Artwork[]> {
-    return apiRequest<Artwork[]>('/api/artworks');
+  async getAll(params?: PaginationParams): Promise<Artwork[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+    if (params?.includeCount) queryParams.set('includeCount', 'true');
+
+    const url = `/api/artworks${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await apiRequest<Artwork[] | PaginatedResponse<Artwork>>(url);
+
+    // Handle both old format (array) and new format (object with data)
+    return Array.isArray(response) ? response : response.data;
   },
 
-  async getApproved(): Promise<Artwork[]> {
-    return apiRequest<Artwork[]>('/api/artworks/approved');
+  async getAllPaginated(params?: PaginationParams): Promise<PaginatedResponse<Artwork>> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('includeCount', 'true');
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+
+    const url = `/api/artworks?${queryParams.toString()}`;
+    return apiRequest<PaginatedResponse<Artwork>>(url);
   },
 
-  async getPending(): Promise<Artwork[]> {
-    return apiRequest<Artwork[]>('/api/artworks?status=pending');
+  async getApproved(params?: PaginationParams): Promise<Artwork[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+    if (params?.includeCount) queryParams.set('includeCount', 'true');
+
+    const url = `/api/artworks/approved${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await apiRequest<Artwork[] | PaginatedResponse<Artwork>>(url);
+
+    // Handle both old format (array) and new format (object with data)
+    return Array.isArray(response) ? response : response.data;
+  },
+
+  async getApprovedPaginated(params?: PaginationParams): Promise<PaginatedResponse<Artwork>> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('includeCount', 'true');
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+
+    const url = `/api/artworks/approved?${queryParams.toString()}`;
+    return apiRequest<PaginatedResponse<Artwork>>(url);
+  },
+
+  async getPending(params?: PaginationParams): Promise<Artwork[]> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('status', 'pending');
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+    if (params?.includeCount) queryParams.set('includeCount', 'true');
+
+    const url = `/api/artworks?${queryParams.toString()}`;
+    const response = await apiRequest<Artwork[] | PaginatedResponse<Artwork>>(url);
+
+    // Handle both old format (array) and new format (object with data)
+    return Array.isArray(response) ? response : response.data;
+  },
+
+  async getPendingPaginated(params?: PaginationParams): Promise<PaginatedResponse<Artwork>> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('status', 'pending');
+    queryParams.set('includeCount', 'true');
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    if (params?.offset) queryParams.set('offset', params.offset.toString());
+
+    const url = `/api/artworks?${queryParams.toString()}`;
+    return apiRequest<PaginatedResponse<Artwork>>(url);
   },
 
   async getNextPromptNumber(): Promise<number> {

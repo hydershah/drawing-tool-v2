@@ -1,6 +1,7 @@
 /**
  * AdminApprovalsPage
  * Artwork approval workflow for admin
+ * Implements infinite scroll for performance optimization
  */
 
 import { useEffect, useState, useCallback, memo, useRef, useMemo } from 'react';
@@ -9,6 +10,9 @@ import { Button } from '@/components/ui/Button';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from 'sonner';
 import type { Artwork } from '@/types';
+
+// Number of artworks to display initially and per scroll
+const ITEMS_PER_PAGE = 12;
 
 interface ActionDialogState {
   isOpen: boolean;
@@ -90,6 +94,8 @@ export function AdminApprovalsPage() {
     artwork: null,
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const openConfirmDialog = useCallback((artwork: Artwork, action: 'approve' | 'reject') => {
     setDialogState({
@@ -182,9 +188,41 @@ export function AdminApprovalsPage() {
 
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
+    setDisplayCount(ITEMS_PER_PAGE);
     toast.success('Artworks refreshed');
     setTimeout(() => setIsRefreshing(false), 500);
   }, []);
+
+  // Only display a subset of artworks for performance
+  const displayedArtworks = useMemo(() => {
+    return pendingArtworks.slice(0, displayCount);
+  }, [pendingArtworks, displayCount]);
+
+  const hasMore = displayCount < pendingArtworks.length;
+
+  // Infinite scroll using Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasMore) {
+          setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        }
+      },
+      { rootMargin: '400px' } // Load more 400px before reaching the end
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore]);
 
   const handleDownload = useCallback(async (artwork: Artwork) => {
     try {
@@ -272,10 +310,11 @@ export function AdminApprovalsPage() {
 
           <div className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
             {pendingArtworks.length} artwork{pendingArtworks.length !== 1 ? 's' : ''} pending approval
+            {displayCount < pendingArtworks.length && ` (showing ${displayCount})`}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pendingArtworks.map((artwork) => {
+            {displayedArtworks.map((artwork) => {
               const prompt = prompts.find(p => p.id === artwork.promptId);
               return (
                 <div
@@ -356,6 +395,21 @@ export function AdminApprovalsPage() {
               );
             })}
           </div>
+
+          {/* Infinite scroll trigger and loading indicator */}
+          {hasMore && (
+            <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+              <span className="ml-2 text-muted-foreground text-sm">Loading more artworks...</span>
+            </div>
+          )}
+
+          {/* Summary of loaded items */}
+          {!hasMore && pendingArtworks.length > ITEMS_PER_PAGE && (
+            <div className="text-center text-muted-foreground text-sm py-4">
+              Showing all {pendingArtworks.length} pending artworks
+            </div>
+          )}
         </div>
       </div>
 
