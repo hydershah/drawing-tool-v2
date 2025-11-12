@@ -48,13 +48,20 @@ export async function sendArtworkSubmissionEmail(
   imageData: string
 ): Promise<void> {
   try {
-    await fetch(`${EMAIL_API_URL}/api/emails/artwork-submission`, {
+    console.log('[Email Service] Sending artwork submission email to:', artistEmail);
+    const response = await fetch(`${EMAIL_API_URL}/api/emails/artwork-submission`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ artistEmail, artistName, prompt, imageData }),
     });
+
+    if (!response.ok) {
+      console.error('[Email Service] Artwork submission email API returned error:', response.status, await response.text());
+    } else {
+      console.log('[Email Service] Artwork submission email sent successfully');
+    }
     // Don't throw on email failure - it's not critical
   } catch (error) {
     console.error('[Email Service] Failed to send artwork submission email:', error);
@@ -71,7 +78,8 @@ export async function sendArtworkApprovalEmails(
   prompt: string
 ): Promise<void> {
   try {
-    await fetch(`${EMAIL_API_URL}/api/emails/artwork-approved`, {
+    console.log('[Email Service] Sending artwork approval emails - Artist:', artistEmail, 'Prompt Submitter:', promptSubmitterEmail);
+    const response = await fetch(`${EMAIL_API_URL}/api/emails/artwork-approved`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,6 +91,12 @@ export async function sendArtworkApprovalEmails(
         prompt,
       }),
     });
+
+    if (!response.ok) {
+      console.error('[Email Service] Artwork approval emails API returned error:', response.status, await response.text());
+    } else {
+      console.log('[Email Service] Artwork approval emails sent successfully');
+    }
     // Don't throw on email failure - it's not critical
   } catch (error) {
     console.error('[Email Service] Failed to send artwork approval emails:', error);
