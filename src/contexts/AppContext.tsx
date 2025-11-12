@@ -270,6 +270,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setPendingArtworks(prev => prev.map(a => a.id === tempId ? newArtwork : a));
       }
 
+      // Send "prompt used" email to prompt owner (if not admin-created)
+      if (!data.isAdminCreated && data.promptId && data.promptText && data.artistName) {
+        const prompt = prompts.find(p => p.id === data.promptId);
+        if (prompt?.email) {
+          console.log('[AppContext] Sending prompt used email to prompt owner:', prompt.email);
+          emailService.sendPromptUsedEmail(
+            prompt.email,
+            data.promptText,
+            data.artistName
+          ).catch(err => {
+            console.error('[AppContext] Failed to send prompt used email:', err);
+          });
+        } else {
+          console.log('[AppContext] No email found for prompt owner');
+        }
+      }
+
       // Refresh prompts in background to get updated status
       if (data.promptId) {
         refreshPrompts();
@@ -283,7 +300,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setPendingArtworks(prev => prev.filter(a => a.id !== tempId));
       throw error;
     }
-  }, [artworks, pendingArtworks, refreshPrompts]);
+  }, [artworks, pendingArtworks, prompts, refreshPrompts]);
 
   const approveArtwork = useCallback(async (id: string) => {
     // Optimistic update - instant UI feedback

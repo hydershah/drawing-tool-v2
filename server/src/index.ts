@@ -616,6 +616,32 @@ app.post('/api/emails/artwork-submission', async (req, res) => {
   }
 });
 
+// Send "prompt used" notification email
+app.post('/api/emails/prompt-used', async (req, res) => {
+  try {
+    const { promptSubmitterEmail, prompt, artistName } = req.body;
+
+    if (!promptSubmitterEmail || !prompt || !artistName) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = await emailService.sendPromptUsedEmail(
+      promptSubmitterEmail,
+      prompt,
+      artistName
+    );
+
+    if (result.success) {
+      res.json({ success: true, emailId: result.emailId });
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('Error sending prompt used email:', error);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
+});
+
 // Send artwork approval emails (to both artist and prompt submitter)
 app.post('/api/emails/artwork-approved', async (req, res) => {
   try {

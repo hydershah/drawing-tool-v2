@@ -49,14 +49,21 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
  */
 export const promptStorage = {
   async getAll(): Promise<Prompt[]> {
-    const response = await apiCall<{ success: boolean; submissions: any[] }>('prompts', {
+    const response = await apiCall<{ success?: boolean; submissions?: any[]; data?: any[]; prompts?: any[] }>('prompts', {
       method: 'GET',
     });
 
-    console.log('[promptStorage.getAll] Sample prompt from API:', response.submissions[0]);
+    // Handle multiple response formats: { submissions: [] }, { data: [] }, or { prompts: [] }
+    const promptsData = response.submissions || response.data || response.prompts || [];
+
+    console.log('[promptStorage.getAll] Sample prompt from API:', promptsData[0]);
 
     // Sort by creation date (oldest first) to assign sequential numbers
-    const sortedSubmissions = [...response.submissions].sort((a, b) => a.timestamp - b.timestamp);
+    const sortedSubmissions = [...promptsData].sort((a, b) => {
+      const timeA = a.timestamp || a.createdAt || a.created_at || 0;
+      const timeB = b.timestamp || b.createdAt || b.created_at || 0;
+      return timeA - timeB;
+    });
 
     // Transform API response to Prompt format
     const prompts = sortedSubmissions.map((p: any, index: number) => ({
@@ -64,11 +71,13 @@ export const promptStorage = {
       prompt: p.prompt,
       email: p.email || '',
       status: p.status || 'pending',
-      createdAt: p.timestamp,
+      createdAt: p.timestamp || p.createdAt || p.created_at || Date.now(),
       ...(p.completedAt && { completedAt: p.completedAt }),
+      ...(p.completed_at && { completedAt: p.completed_at }),
       ...(p.artworkId && { artworkId: p.artworkId }),
+      ...(p.artwork_id && { artworkId: p.artwork_id }),
       // If backend doesn't provide promptNumber, generate it from index (1-based)
-      promptNumber: p.promptNumber || (index + 1),
+      promptNumber: p.promptNumber || p.prompt_number || (index + 1),
     }));
 
     console.log('[promptStorage.getAll] Transformed prompts sample:', prompts[0]);
@@ -85,15 +94,13 @@ export const promptStorage = {
       body: JSON.stringify({ prompt, email }),
     });
 
-    console.log('[promptStorage.create] Prompt created, sending confirmation email...');
+    console.log('[promptStorage.create] Prompt created');
 
-    // Send confirmation email (non-blocking)
-    try {
-      await emailService.sendPromptSubmissionEmail(email, prompt);
-      console.log('[promptStorage.create] Email service called successfully');
-    } catch (error) {
-      console.error('[promptStorage.create] Error calling email service:', error);
-    }
+    // Send confirmation email via Express email API (non-blocking)
+    // Note: Supabase backend doesn't send prompt emails, so we call Express API here
+    emailService.sendPromptSubmissionEmail(email, prompt).catch(err => {
+      console.error('[promptStorage.create] Failed to send prompt submission email:', err);
+    });
 
     return {
       id: response.id,
@@ -130,15 +137,18 @@ export const promptStorage = {
  */
 export const artworkStorage = {
   async getAll(): Promise<Artwork[]> {
-    const response = await apiCall<{ artworks: any[] }>('artworks', {
+    const response = await apiCall<{ success?: boolean; artworks?: any[]; data?: any[] }>('artworks', {
       method: 'GET',
     });
 
-    console.log('[artworkStorage.getAll] RAW API Response - Full first artwork:', JSON.stringify(response.artworks[0], null, 2));
-    console.log('[artworkStorage.getAll] RAW API Response - All field names:', Object.keys(response.artworks[0] || {}));
+    // Handle both response formats: { artworks: [] } or { data: [] }
+    const artworksData = response.artworks || response.data || [];
+
+    console.log('[artworkStorage.getAll] RAW API Response - Full first artwork:', JSON.stringify(artworksData[0], null, 2));
+    console.log('[artworkStorage.getAll] RAW API Response - All field names:', Object.keys(artworksData[0] || {}));
 
     // Transform API response to Artwork format
-    const artworks = response.artworks.map((a: any) => {
+    const artworks = artworksData.map((a: any) => {
       const transformed = {
         id: a.id,
         promptNumber: a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? null,
@@ -171,38 +181,47 @@ export const artworkStorage = {
   },
 
   async getPending(): Promise<Artwork[]> {
-    const response = await apiCall<{ success: boolean; artworks: any[] }>('pending-artworks', {
-      method: 'GET',
-    });
-
-    console.log('[artworkStorage.getPending] RAW API Response - Full first artwork:', JSON.stringify(response.artworks[0], null, 2));
-    console.log('[artworkStorage.getPending] RAW API Response - All field names:', Object.keys(response.artworks[0] || {}));
-
-    const pendingArtworks = response.artworks.map((a: any) => {
-      const transformed = {
-        id: a.id,
-        promptNumber: a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? null,
-        imageData: a.imageUrl ?? a.imageData ?? a.image_data,
-        promptId: a.promptId ?? a.prompt_id ?? a.promptid ?? null,
-        promptText: a.prompt || a.promptText || a.prompt_text || a.prompttext,
-        artistName: a.artistName ?? a.artist_name ?? a.artistname ?? null,
-        artistEmail: a.artistEmail ?? a.artist_email ?? a.artistemail ?? null,
-        status: 'pending' as const,
-        createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
-        isAdminCreated: false,
-      };
-
-      console.log('[artworkStorage.getPending] Field extraction check:', {
-        'promptNumber found': a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? 'MISSING',
-        'promptId found': a.promptId ?? a.prompt_id ?? a.promptid ?? 'MISSING',
-        'promptText found': a.prompt ?? a.promptText ?? a.prompt_text ?? a.prompttext ?? 'MISSING',
+    try {
+      const response = await apiCall<{ success?: boolean; artworks?: any[]; data?: any[] }>('pending-artworks', {
+        method: 'GET',
       });
 
-      return transformed;
-    });
+      // Handle both response formats: { artworks: [] } or { data: [] }
+      const artworksData = response.artworks || response.data || [];
 
-    console.log('[artworkStorage.getPending] Transformed pending artwork:', pendingArtworks[0]);
-    return pendingArtworks;
+      console.log('[artworkStorage.getPending] RAW API Response - Full first artwork:', JSON.stringify(artworksData[0], null, 2));
+      console.log('[artworkStorage.getPending] RAW API Response - All field names:', Object.keys(artworksData[0] || {}));
+
+      const pendingArtworks = artworksData.map((a: any) => {
+        const transformed = {
+          id: a.id,
+          promptNumber: a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? null,
+          imageData: a.imageUrl ?? a.imageData ?? a.image_data,
+          promptId: a.promptId ?? a.prompt_id ?? a.promptid ?? null,
+          promptText: a.prompt || a.promptText || a.prompt_text || a.prompttext,
+          artistName: a.artistName ?? a.artist_name ?? a.artistname ?? null,
+          artistEmail: a.artistEmail ?? a.artist_email ?? a.artistemail ?? null,
+          status: 'pending' as const,
+          createdAt: a.createdAt ?? a.created_at ?? a.timestamp ?? Date.now(),
+          isAdminCreated: false,
+        };
+
+        console.log('[artworkStorage.getPending] Field extraction check:', {
+          'promptNumber found': a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? 'MISSING',
+          'promptId found': a.promptId ?? a.prompt_id ?? a.promptid ?? 'MISSING',
+          'promptText found': a.prompt ?? a.promptText ?? a.prompt_text ?? a.prompttext ?? 'MISSING',
+        });
+
+        return transformed;
+      });
+
+      console.log('[artworkStorage.getPending] Transformed pending artwork:', pendingArtworks[0]);
+      return pendingArtworks;
+    } catch (error) {
+      console.error('[artworkStorage.getPending] Error fetching pending artworks:', error);
+      // Return empty array on timeout/error to prevent app crash
+      return [];
+    }
   },
 
   async getById(id: string): Promise<Artwork | undefined> {
@@ -277,14 +296,17 @@ export const artworkStorage = {
 
       console.log('[artworkStorage.create] Backend response:', response);
 
-      // Send confirmation email to artist (non-blocking)
-      if (data.artistEmail) {
+      // Send confirmation email to artist via Express email API (non-blocking)
+      // Note: Supabase backend doesn't send artwork emails, so we call Express API here
+      if (data.artistEmail && data.artistName) {
         emailService.sendArtworkSubmissionEmail(
           data.artistEmail,
-          data.artistName || 'Artist',
+          data.artistName,
           data.promptText || 'Your artwork',
           data.imageData
-        );
+        ).catch(err => {
+          console.error('[artworkStorage.create] Failed to send artwork submission email:', err);
+        });
       }
 
       return {

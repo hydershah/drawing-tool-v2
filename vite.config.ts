@@ -15,7 +15,7 @@ export default defineConfig({
     sourcemap: true,
   },
   server: {
-    port: 3001,
+    port: 5173,  // Changed from 3001 to avoid conflict with Express backend
     open: true,
     host: true,
   },

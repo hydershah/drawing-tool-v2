@@ -69,6 +69,35 @@ export async function sendArtworkSubmissionEmail(
 }
 
 /**
+ * Send "prompt used" notification email to prompt submitter
+ */
+export async function sendPromptUsedEmail(
+  promptSubmitterEmail: string,
+  prompt: string,
+  artistName: string
+): Promise<void> {
+  try {
+    console.log('[Email Service] Sending prompt used email to:', promptSubmitterEmail);
+    const response = await fetch(`${EMAIL_API_URL}/api/emails/prompt-used`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ promptSubmitterEmail, prompt, artistName }),
+    });
+
+    if (!response.ok) {
+      console.error('[Email Service] Prompt used email API returned error:', response.status, await response.text());
+    } else {
+      console.log('[Email Service] Prompt used email sent successfully');
+    }
+    // Don't throw on email failure - it's not critical
+  } catch (error) {
+    console.error('[Email Service] Failed to send prompt used email:', error);
+  }
+}
+
+/**
  * Send artwork approval emails (to both artist and prompt submitter)
  */
 export async function sendArtworkApprovalEmails(
