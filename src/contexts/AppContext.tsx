@@ -306,12 +306,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       // Send approval emails (non-blocking)
       const promptSubmitterEmail = pendingArtwork.promptId
-        ? prompts.find(p => p.id === pendingArtwork.promptId)?.email
+        ? prompts.find(p => p.id === pendingArtwork.promptId)?.email || undefined
         : undefined;
 
       emailService.sendArtworkApprovalEmails(
-        pendingArtwork.artistEmail,
-        pendingArtwork.artistName,
+        pendingArtwork.artistEmail || undefined,
+        pendingArtwork.artistName || undefined,
         promptSubmitterEmail,
         pendingArtwork.promptText || 'Your prompt'
       );
