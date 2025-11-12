@@ -505,7 +505,10 @@ app.post('/api/emails/artwork-approved', async (req, res) => {
   try {
     const { artistEmail, artistName, promptSubmitterEmail, prompt } = req.body;
 
-    const results = { artist: null, promptSubmitter: null };
+    const results: {
+      artist: { success: boolean; emailId?: string; error?: string } | null;
+      promptSubmitter: { success: boolean; emailId?: string; error?: string } | null;
+    } = { artist: null, promptSubmitter: null };
 
     // Send email to artist if provided
     if (artistEmail && emailService.validateEmail(artistEmail)) {
