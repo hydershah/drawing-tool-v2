@@ -94,12 +94,19 @@ app.post('/api/prompts', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Get the next prompt number (max + 1)
+    const maxNumberResult = await db.select({
+      maxNumber: sql<number>`COALESCE(MAX(${schema.prompts.promptNumber}), 0)`
+    }).from(schema.prompts);
+    const nextPromptNumber = (maxNumberResult[0]?.maxNumber || 0) + 1;
+
     const newPrompt = await db.insert(schema.prompts)
       .values({
         id,
         prompt,
         email,
         status: 'pending',
+        promptNumber: nextPromptNumber,
         createdAt: new Date(),
       })
       .returning();
