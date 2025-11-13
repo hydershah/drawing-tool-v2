@@ -7,12 +7,21 @@ import Dexie, { type EntityTable } from 'dexie';
 import type { Prompt, Artwork, SiteContent } from '@/types';
 
 /**
+ * Cache metadata for tracking freshness
+ */
+interface CacheMetadata {
+  id: string;
+  lastFetched: number;
+}
+
+/**
  * Database schema interface
  */
 interface DrawingToolDatabase extends Dexie {
   prompts: EntityTable<Prompt, 'id'>;
   artworks: EntityTable<Artwork, 'id'>;
   siteContent: EntityTable<SiteContent & { id: string }, 'id'>;
+  cacheMetadata: EntityTable<CacheMetadata, 'id'>;
 }
 
 /**
@@ -25,6 +34,14 @@ db.version(1).stores({
   prompts: 'id, email, status, createdAt, completedAt, promptNumber',
   artworks: 'id, promptId, promptNumber, status, createdAt, approvedAt, isAdminCreated',
   siteContent: 'id',
+});
+
+// Add cache metadata table in version 2
+db.version(2).stores({
+  prompts: 'id, email, status, createdAt, completedAt, promptNumber',
+  artworks: 'id, promptId, promptNumber, status, createdAt, approvedAt, isAdminCreated',
+  siteContent: 'id',
+  cacheMetadata: 'id, lastFetched',
 });
 
 /**
@@ -126,4 +143,62 @@ export async function getDatabaseStats() {
     approvedArtworks: approvedCount,
     pendingArtworks: pendingCount,
   };
+}
+
+/**
+ * Cache Management Functions
+ */
+
+// Cache TTL (Time To Live) - 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
+
+/**
+ * Check if cached data is still fresh
+ */
+export async function isCacheFresh(cacheKey: string): Promise<boolean> {
+  const metadata = await db.cacheMetadata.get(cacheKey);
+  if (!metadata) return false;
+
+  const age = Date.now() - metadata.lastFetched;
+  return age < CACHE_TTL;
+}
+
+/**
+ * Update cache timestamp
+ */
+export async function updateCacheMetadata(cacheKey: string): Promise<void> {
+  await db.cacheMetadata.put({
+    id: cacheKey,
+    lastFetched: Date.now(),
+  });
+}
+
+/**
+ * Get cached prompts if fresh, otherwise return null
+ */
+export async function getCachedPrompts(): Promise<Prompt[] | null> {
+  const isFresh = await isCacheFresh('prompts');
+  if (!isFresh) return null;
+
+  const prompts = await db.prompts.toArray();
+  return prompts.length > 0 ? prompts : null;
+}
+
+/**
+ * Cache prompts in IndexedDB
+ */
+export async function cachePrompts(prompts: Prompt[]): Promise<void> {
+  // Clear existing prompts and add new ones
+  await db.prompts.clear();
+  await db.prompts.bulkAdd(prompts);
+  await updateCacheMetadata('prompts');
+  console.log(`[Cache] Stored ${prompts.length} prompts`);
+}
+
+/**
+ * Invalidate prompts cache (forces fresh fetch on next request)
+ */
+export async function invalidatePromptsCache(): Promise<void> {
+  await db.cacheMetadata.delete('prompts');
+  console.log('[Cache] Prompts cache invalidated');
 }

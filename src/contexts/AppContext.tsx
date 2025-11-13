@@ -13,6 +13,7 @@ interface AppContextType {
 
   // Prompts
   prompts: Prompt[];
+  loadPrompts: () => Promise<Prompt[]>;
   addPrompt: (prompt: string, email: string) => Promise<Prompt>;
   updatePrompt: (id: string, updates: Partial<Prompt>) => void;
   deletePrompt: (id: string) => void;
@@ -52,13 +53,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [pendingArtworks, setPendingArtworks] = useState<Artwork[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Initialize data from storage
+  // Initialize data from storage (preload everything with caching for instant load)
   useEffect(() => {
     const loadData = async () => {
       try {
         console.log('[AppContext] Starting data load...');
         const startTime = Date.now();
 
+        // Load all data in parallel - prompts will load from IndexedDB cache (instant!)
         const [allPrompts, approvedArtworks, pendingArtworksData] = await Promise.all([
           promptStorage.getAll().then(data => {
             console.log('[AppContext] Prompts loaded:', data.length);
@@ -77,42 +79,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const loadTime = Date.now() - startTime;
         console.log(`[AppContext] Data loaded in ${loadTime}ms`);
 
-        // Enrich artworks with prompt numbers if missing
-        const enrichedArtworks = approvedArtworks.map(artwork => {
-          if (!artwork.promptNumber) {
-            // Try to find prompt by ID first
-            let prompt = artwork.promptId ? allPrompts.find(p => p.id === artwork.promptId) : null;
-
-            // If not found by ID, try to match by prompt text
-            if (!prompt && artwork.promptText) {
-              prompt = allPrompts.find(p => p.prompt === artwork.promptText);
-            }
-
-            console.log('[AppContext] Enriching artwork:', {
-              artworkId: artwork.id,
-              promptId: artwork.promptId,
-              promptText: artwork.promptText?.substring(0, 30),
-              foundPrompt: !!prompt,
-              matchedBy: prompt ? (artwork.promptId ? 'id' : 'text') : 'none',
-              promptNumber: prompt?.promptNumber,
-            });
-
-            if (prompt?.promptNumber) {
-              return {
-                ...artwork,
-                promptNumber: prompt.promptNumber,
-                promptText: prompt.prompt,
-                promptId: prompt.id
-              };
-            }
-          }
-          return artwork;
-        });
-
-        console.log('[AppContext] Sample enriched artwork:', enrichedArtworks[0]);
-
         setPrompts(allPrompts);
-        setArtworks(enrichedArtworks);
+        setArtworks(approvedArtworks);
         setPendingArtworks(pendingArtworksData);
         setIsAdmin(adminStorage.isLoggedIn());
       } catch (error) {
@@ -123,6 +91,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     loadData();
+  }, []);
+
+  // Refresh prompts manually (with caching)
+  const loadPrompts = useCallback(async () => {
+    try {
+      console.log('[AppContext.loadPrompts] Refreshing prompts...');
+      const allPrompts = await promptStorage.getAll();
+      console.log('[AppContext.loadPrompts] Prompts loaded:', allPrompts.length);
+      setPrompts(allPrompts);
+      return allPrompts;
+    } catch (error) {
+      console.error('[AppContext.loadPrompts] Error loading prompts:', error);
+      throw error;
+    }
   }, []);
 
   // Prompt operations
@@ -416,6 +398,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value: AppContextType = {
     isLoading,
     prompts,
+    loadPrompts,
     addPrompt,
     updatePrompt,
     deletePrompt,

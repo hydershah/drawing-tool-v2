@@ -5,6 +5,7 @@
 
 import type { Prompt, Artwork } from '@/types';
 import * as emailService from './email';
+import { getCachedPrompts, cachePrompts, invalidatePromptsCache } from './database';
 
 // Use Express backend instead of Supabase Edge Functions
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
@@ -48,14 +49,40 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
  * Prompt Storage API
  */
 export const promptStorage = {
-  async getAll(): Promise<Prompt[]> {
+  async getAll(options?: { useCache?: boolean; backgroundRefresh?: boolean }): Promise<Prompt[]> {
+    const useCache = options?.useCache !== false; // Default to true
+    const backgroundRefresh = options?.backgroundRefresh !== false; // Default to true
+
+    // Try to get cached data first
+    if (useCache) {
+      const cached = await getCachedPrompts();
+      if (cached) {
+        console.log(`[promptStorage.getAll] Returning ${cached.length} cached prompts`);
+
+        // Optionally refresh cache in background
+        if (backgroundRefresh) {
+          this.refreshPromptsCache().catch(err => {
+            console.error('[promptStorage.getAll] Background refresh failed:', err);
+          });
+        }
+
+        return cached;
+      }
+    }
+
+    // Cache miss or disabled - fetch from API
+    console.log('[promptStorage.getAll] Cache miss, fetching from API');
+    return this.fetchAndCachePrompts();
+  },
+
+  async fetchAndCachePrompts(): Promise<Prompt[]> {
     // Express returns array directly, not wrapped
     // Load all prompts by setting a high limit (default is 50)
     const promptsData = await apiCall<any[]>('prompts?limit=1000', {
       method: 'GET',
     });
 
-    console.log('[promptStorage.getAll] Sample prompt from API:', promptsData[0]);
+    console.log('[promptStorage.fetchAndCachePrompts] Sample prompt from API:', promptsData[0]);
 
     // Sort by creation date (oldest first) to assign sequential numbers
     const sortedSubmissions = [...promptsData].sort((a, b) => {
@@ -79,10 +106,20 @@ export const promptStorage = {
       promptNumber: p.promptNumber || p.prompt_number || (index + 1),
     }));
 
-    console.log('[promptStorage.getAll] Transformed prompts sample:', prompts[0]);
+    console.log('[promptStorage.fetchAndCachePrompts] Transformed prompts sample:', prompts[0]);
 
     // Sort back to newest first for display
-    return prompts.sort((a, b) => b.createdAt - a.createdAt);
+    const sorted = prompts.sort((a, b) => b.createdAt - a.createdAt);
+
+    // Cache the prompts
+    await cachePrompts(sorted);
+
+    return sorted;
+  },
+
+  async refreshPromptsCache(): Promise<void> {
+    console.log('[promptStorage.refreshPromptsCache] Starting background refresh');
+    await this.fetchAndCachePrompts();
   },
 
   async create(prompt: string, email: string): Promise<Prompt> {
@@ -95,6 +132,9 @@ export const promptStorage = {
     });
 
     console.log('[promptStorage.create] Prompt created');
+
+    // Invalidate cache to ensure fresh data on next fetch
+    await invalidatePromptsCache();
 
     // Send confirmation email via Express email API (non-blocking)
     // Note: Supabase backend doesn't send prompt emails, so we call Express API here
@@ -115,6 +155,9 @@ export const promptStorage = {
     await apiCall(`prompts/${id}`, {
       method: 'DELETE',
     });
+
+    // Invalidate cache after deletion
+    await invalidatePromptsCache();
   },
 
   async addEmail(id: string, email: string): Promise<void> {
@@ -122,12 +165,18 @@ export const promptStorage = {
       method: 'PATCH',
       body: JSON.stringify({ email }),
     });
+
+    // Invalidate cache after update
+    await invalidatePromptsCache();
   },
 
   async complete(id: string): Promise<void> {
     await apiCall(`prompts/${id}/complete`, {
       method: 'PATCH',
     });
+
+    // Invalidate cache after completion
+    await invalidatePromptsCache();
   },
 };
 
