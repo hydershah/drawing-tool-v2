@@ -11,6 +11,7 @@ import { eq, desc, and, sql } from 'drizzle-orm';
 import * as emailService from './email';
 import { initRedis, getCacheStats, clearAllCache } from './redis';
 import cache from './cache-service';
+import { performanceMiddleware, getPerformanceStats, getCacheStats as getPerfCacheStats } from './performance-monitor';
 
 dotenv.config();
 
@@ -24,6 +25,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Allow large image uploads
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Add performance monitoring middleware
+app.use(performanceMiddleware);
 
 // Health check
 app.get('/health', (req, res) => {

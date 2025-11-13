@@ -3,13 +3,13 @@ import Redis from 'ioredis';
 // Redis client instance
 let redisClient: Redis | null = null;
 
-// Cache configuration
+// Cache configuration - Optimized for better hit rates
 const CACHE_TTL = {
-  PROMPTS_LIST: 300, // 5 minutes
-  ARTWORK_LIST: 300, // 5 minutes
-  SINGLE_ITEM: 300, // 5 minutes
-  SITE_CONTENT: 3600, // 1 hour
-  NEXT_NUMBER: 3600, // 1 hour
+  PROMPTS_LIST: 900, // 15 minutes (lists change less frequently)
+  ARTWORK_LIST: 900, // 15 minutes (lists change less frequently)
+  SINGLE_ITEM: 600, // 10 minutes (individual items are accessed frequently)
+  SITE_CONTENT: 7200, // 2 hours (rarely changes)
+  NEXT_NUMBER: 1800, // 30 minutes (changes incrementally)
 };
 
 // Cache key patterns
