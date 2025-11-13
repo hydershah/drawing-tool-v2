@@ -9,8 +9,13 @@ import path from 'path';
 import { db, schema } from './db';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import * as emailService from './email';
+import { initRedis, getCacheStats, clearAllCache } from './redis';
+import cache from './cache-service';
 
 dotenv.config();
+
+// Initialize Redis
+initRedis();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,28 +30,57 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Cache stats endpoint
+app.get('/api/cache/stats', async (req, res) => {
+  try {
+    const stats = await getCacheStats();
+    res.json(stats);
+  } catch (error) {
+    console.error('Error getting cache stats:', error);
+    res.status(500).json({ error: 'Failed to get cache stats' });
+  }
+});
+
+// Clear cache endpoint (admin only - you should add authentication)
+app.post('/api/cache/clear', async (req, res) => {
+  try {
+    await clearAllCache();
+    res.json({ message: 'Cache cleared successfully' });
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    res.status(500).json({ error: 'Failed to clear cache' });
+  }
+});
+
+// Warm cache endpoint
+app.post('/api/cache/warm', async (req, res) => {
+  try {
+    await cache.warmer.warmAll();
+    res.json({ message: 'Cache warmed successfully' });
+  } catch (error) {
+    console.error('Error warming cache:', error);
+    res.status(500).json({ error: 'Failed to warm cache' });
+  }
+});
+
 // ============================================
 // PROMPTS ENDPOINTS
 // ============================================
 
-// Get all prompts (with pagination)
+// Get all prompts (with pagination) - USING REDIS CACHE
 app.get('/api/prompts', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
     const includeCount = req.query.includeCount === 'true';
 
-    const allPrompts = await db.select()
-      .from(schema.prompts)
-      .orderBy(desc(schema.prompts.createdAt))
-      .limit(limit)
-      .offset(offset);
+    // Use cache service for prompts
+    const allPrompts = await cache.prompts.getAll(limit, offset);
 
     // Optionally include total count for pagination UI
     if (includeCount) {
-      const countResult = await db.select({ count: sql<number>`count(*)` })
-        .from(schema.prompts);
-      const total = Number(countResult[0].count);
+      const stats = await cache.prompts.getStats();
+      const total = stats.total;
 
       res.json({
         data: allPrompts,
@@ -66,26 +100,23 @@ app.get('/api/prompts', async (req, res) => {
   }
 });
 
-// Get prompt by ID
+// Get prompt by ID - USING REDIS CACHE
 app.get('/api/prompts/:id', async (req, res) => {
   try {
-    const prompt = await db.select()
-      .from(schema.prompts)
-      .where(eq(schema.prompts.id, req.params.id))
-      .limit(1);
+    const prompt = await cache.prompts.getById(req.params.id);
 
-    if (prompt.length === 0) {
+    if (!prompt) {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
-    res.json(prompt[0]);
+    res.json(prompt);
   } catch (error) {
     console.error('Error fetching prompt:', error);
     res.status(500).json({ error: 'Failed to fetch prompt' });
   }
 });
 
-// Create new prompt
+// Create new prompt - WITH CACHE INVALIDATION
 app.post('/api/prompts', async (req, res) => {
   try {
     const { id, prompt, email } = req.body;
@@ -94,22 +125,17 @@ app.post('/api/prompts', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Get the next prompt number (max + 1)
-    const maxNumberResult = await db.select({
-      maxNumber: sql<number>`COALESCE(MAX(${schema.prompts.promptNumber}), 0)`
-    }).from(schema.prompts);
-    const nextPromptNumber = (maxNumberResult[0]?.maxNumber || 0) + 1;
+    // Get the next prompt number from cache
+    const nextPromptNumber = await cache.prompts.getNextNumber();
 
-    const newPrompt = await db.insert(schema.prompts)
-      .values({
-        id,
-        prompt,
-        email,
-        status: 'pending',
-        promptNumber: nextPromptNumber,
-        createdAt: new Date(),
-      })
-      .returning();
+    const newPrompt = await cache.prompts.create({
+      id,
+      prompt,
+      email,
+      status: 'pending',
+      promptNumber: nextPromptNumber,
+      createdAt: new Date(),
+    });
 
     // Send confirmation email to prompt submitter (don't block response)
     if (email && emailService.validateEmail(email)) {
@@ -121,61 +147,51 @@ app.post('/api/prompts', async (req, res) => {
       });
     }
 
-    res.status(201).json(newPrompt[0]);
+    res.status(201).json(newPrompt);
   } catch (error) {
     console.error('Error creating prompt:', error);
     res.status(500).json({ error: 'Failed to create prompt' });
   }
 });
 
-// Update prompt
+// Update prompt - WITH CACHE INVALIDATION
 app.patch('/api/prompts/:id', async (req, res) => {
   try {
-    const updated = await db.update(schema.prompts)
-      .set(req.body)
-      .where(eq(schema.prompts.id, req.params.id))
-      .returning();
+    const updated = await cache.prompts.update(req.params.id, req.body);
 
-    if (updated.length === 0) {
+    if (!updated) {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
-    res.json(updated[0]);
+    res.json(updated);
   } catch (error) {
     console.error('Error updating prompt:', error);
     res.status(500).json({ error: 'Failed to update prompt' });
   }
 });
 
-// Mark prompt as completed
+// Mark prompt as completed - WITH CACHE INVALIDATION
 app.patch('/api/prompts/:id/complete', async (req, res) => {
   try {
-    const updated = await db.update(schema.prompts)
-      .set({
-        status: 'completed',
-        completedAt: new Date(),
-      })
-      .where(eq(schema.prompts.id, req.params.id))
-      .returning();
+    const { artworkId } = req.body;
+    const updated = await cache.prompts.markCompleted(req.params.id, artworkId || null);
 
-    if (updated.length === 0) {
+    if (!updated) {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
     console.log(`[Complete Prompt] Marked prompt ${req.params.id} as completed`);
-    res.json(updated[0]);
+    res.json(updated);
   } catch (error) {
     console.error('Error completing prompt:', error);
     res.status(500).json({ error: 'Failed to complete prompt' });
   }
 });
 
-// Delete prompt
+// Delete prompt - WITH CACHE INVALIDATION
 app.delete('/api/prompts/:id', async (req, res) => {
   try {
-    await db.delete(schema.prompts)
-      .where(eq(schema.prompts.id, req.params.id));
-
+    await cache.prompts.delete(req.params.id);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting prompt:', error);
@@ -187,7 +203,7 @@ app.delete('/api/prompts/:id', async (req, res) => {
 // ARTWORKS ENDPOINTS
 // ============================================
 
-// Get all artworks (with pagination)
+// Get all artworks (with pagination) - USING REDIS CACHE
 app.get('/api/artworks', async (req, res) => {
   try {
     const status = req.query.status as string;
@@ -195,28 +211,25 @@ app.get('/api/artworks', async (req, res) => {
     const offset = parseInt(req.query.offset as string) || 0;
     const includeCount = req.query.includeCount === 'true';
 
-    const artworksQuery = status
-      ? db.select()
-          .from(schema.artworks)
-          .where(eq(schema.artworks.status, status))
-          .orderBy(desc(schema.artworks.createdAt))
-      : db.select()
-          .from(schema.artworks)
-          .orderBy(desc(schema.artworks.createdAt));
-
-    const artworks = await artworksQuery.limit(limit).offset(offset);
+    let artworks;
+    if (status === 'approved') {
+      artworks = await cache.artworks.getApproved();
+      // Apply pagination in memory for specific status
+      artworks = artworks.slice(offset, offset + limit);
+    } else if (status === 'pending') {
+      artworks = await cache.artworks.getPending();
+      // Apply pagination in memory for specific status
+      artworks = artworks.slice(offset, offset + limit);
+    } else {
+      artworks = await cache.artworks.getAll(limit, offset);
+    }
 
     // Optionally include total count for pagination UI
     if (includeCount) {
-      const countQuery = status
-        ? db.select({ count: sql<number>`count(*)` })
-            .from(schema.artworks)
-            .where(eq(schema.artworks.status, status))
-        : db.select({ count: sql<number>`count(*)` })
-            .from(schema.artworks);
-
-      const countResult = await countQuery;
-      const total = Number(countResult[0].count);
+      const stats = await cache.artworks.getStats();
+      const total = status === 'approved' ? stats.approved :
+                   status === 'pending' ? stats.pending :
+                   stats.total;
 
       res.json({
         data: artworks,
@@ -236,26 +249,21 @@ app.get('/api/artworks', async (req, res) => {
   }
 });
 
-// Get approved artworks (public gallery with pagination)
+// Get approved artworks (public gallery with pagination) - USING REDIS CACHE
 app.get('/api/artworks/approved', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
     const includeCount = req.query.includeCount === 'true';
 
-    const artworks = await db.select()
-      .from(schema.artworks)
-      .where(eq(schema.artworks.status, 'approved'))
-      .orderBy(desc(schema.artworks.createdAt))
-      .limit(limit)
-      .offset(offset);
+    let artworks = await cache.artworks.getApproved();
+    // Apply pagination in memory
+    artworks = artworks.slice(offset, offset + limit);
 
     // Optionally include total count for pagination UI
     if (includeCount) {
-      const countResult = await db.select({ count: sql<number>`count(*)` })
-        .from(schema.artworks)
-        .where(eq(schema.artworks.status, 'approved'));
-      const total = Number(countResult[0].count);
+      const stats = await cache.artworks.getStats();
+      const total = stats.approved;
 
       res.json({
         data: artworks,
@@ -275,18 +283,10 @@ app.get('/api/artworks/approved', async (req, res) => {
   }
 });
 
-// Get next prompt number
+// Get next prompt number - USING REDIS CACHE
 app.get('/api/artworks/next-number', async (req, res) => {
   try {
-    const result = await db.select({ maxNumber: schema.artworks.promptNumber })
-      .from(schema.artworks)
-      .orderBy(desc(schema.artworks.promptNumber))
-      .limit(1);
-
-    const nextNumber = result.length > 0 && result[0].maxNumber
-      ? result[0].maxNumber + 1
-      : 1;
-
+    const nextNumber = await cache.artworks.getNextNumber();
     res.json({ nextNumber });
   } catch (error) {
     console.error('Error getting next prompt number:', error);
@@ -294,7 +294,7 @@ app.get('/api/artworks/next-number', async (req, res) => {
   }
 });
 
-// Create artwork
+// Create artwork - WITH CACHE INVALIDATION
 app.post('/api/artworks', async (req, res) => {
   try {
     const { id, imageData, promptId, promptText, artistName, artistEmail, isAdminCreated, promptNumber } = req.body;
@@ -303,19 +303,17 @@ app.post('/api/artworks', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const newArtwork = await db.insert(schema.artworks)
-      .values({
-        id,
-        imageData,
-        promptId,
-        promptNumber,
-        artistName,
-        artistEmail,
-        isAdminCreated: isAdminCreated || false,
-        status: isAdminCreated ? 'approved' : 'pending',
-        createdAt: new Date(),
-      })
-      .returning();
+    const newArtwork = await cache.artworks.create({
+      id,
+      imageData,
+      promptId,
+      promptNumber,
+      artistName,
+      artistEmail,
+      isAdminCreated: isAdminCreated || false,
+      status: isAdminCreated ? 'approved' : 'pending',
+      createdAt: new Date(),
+    });
 
     // Send emails after artwork is created (don't block response)
     if (!isAdminCreated) {
@@ -399,41 +397,26 @@ app.post('/api/artworks', async (req, res) => {
       }
     }
 
-    res.status(201).json(newArtwork[0]);
+    res.status(201).json(newArtwork);
   } catch (error) {
     console.error('Error creating artwork:', error);
     res.status(500).json({ error: 'Failed to create artwork' });
   }
 });
 
-// Approve artwork
+// Approve artwork - WITH CACHE INVALIDATION
 app.patch('/api/artworks/:id/approve', async (req, res) => {
   try {
-    const updated = await db.update(schema.artworks)
-      .set({
-        status: 'approved',
-        approvedAt: new Date(),
-      })
-      .where(eq(schema.artworks.id, req.params.id))
-      .returning();
+    const artwork = await cache.artworks.approve(req.params.id);
 
-    if (updated.length === 0) {
+    if (!artwork) {
       return res.status(404).json({ error: 'Artwork not found' });
     }
-
-    const artwork = updated[0];
 
     // Mark prompt as completed if this artwork is linked to a prompt
     if (artwork.promptId) {
       try {
-        await db.update(schema.prompts)
-          .set({
-            status: 'completed',
-            completedAt: new Date(),
-            artworkId: artwork.id,
-          })
-          .where(eq(schema.prompts.id, artwork.promptId));
-
+        await cache.prompts.markCompleted(artwork.promptId, artwork.id);
         console.log(`[Approve Artwork] Marked prompt ${artwork.promptId} as completed`);
       } catch (err) {
         console.error(`[Approve Artwork] Error updating prompt status for ${artwork.promptId}:`, err);
@@ -496,12 +479,10 @@ app.patch('/api/artworks/:id/approve', async (req, res) => {
   }
 });
 
-// Delete artwork
+// Delete artwork - WITH CACHE INVALIDATION
 app.delete('/api/artworks/:id', async (req, res) => {
   try {
-    await db.delete(schema.artworks)
-      .where(eq(schema.artworks.id, req.params.id));
-
+    await cache.artworks.delete(req.params.id);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting artwork:', error);
@@ -513,57 +494,30 @@ app.delete('/api/artworks/:id', async (req, res) => {
 // SITE CONTENT ENDPOINTS
 // ============================================
 
-// Get site content
+// Get site content - USING REDIS CACHE
 app.get('/api/site-content', async (req, res) => {
   try {
-    const content = await db.select()
-      .from(schema.siteContent)
-      .where(eq(schema.siteContent.id, 'default'))
-      .limit(1);
-
-    if (content.length === 0) {
-      // Return default content
-      return res.json({
-        id: 'default',
-        projectTitle: 'Drawing Tool',
-        projectDescription: 'Submit prompts and receive custom artwork',
-      });
-    }
-
-    res.json(content[0]);
+    const content = await cache.siteContent.get();
+    res.json(content);
   } catch (error) {
     console.error('Error fetching site content:', error);
     res.status(500).json({ error: 'Failed to fetch site content' });
   }
 });
 
-// Update site content
+// Update site content - WITH CACHE INVALIDATION
 app.put('/api/site-content', async (req, res) => {
   try {
     const { projectTitle, projectDescription, bookLink, bookTitle } = req.body;
 
-    const updated = await db.insert(schema.siteContent)
-      .values({
-        id: 'default',
-        projectTitle,
-        projectDescription,
-        bookLink,
-        bookTitle,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: schema.siteContent.id,
-        set: {
-          projectTitle,
-          projectDescription,
-          bookLink,
-          bookTitle,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+    const updated = await cache.siteContent.update({
+      projectTitle,
+      projectDescription,
+      bookLink,
+      bookTitle,
+    });
 
-    res.json(updated[0]);
+    res.json(updated);
   } catch (error) {
     console.error('Error updating site content:', error);
     res.status(500).json({ error: 'Failed to update site content' });
@@ -701,8 +655,17 @@ app.get('*', (_req, res) => {
 // START SERVER
 // ============================================
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`[Server] Running on port ${PORT}`);
   console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`[Server] Serving frontend from: ${frontendDistPath}`);
+
+  // Warm up Redis cache on startup
+  console.log('[Server] Warming up Redis cache...');
+  try {
+    await cache.warmer.warmAll();
+    console.log('[Server] Redis cache warmed successfully');
+  } catch (error) {
+    console.error('[Server] Failed to warm cache:', error);
+  }
 });
