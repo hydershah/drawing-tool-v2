@@ -149,6 +149,9 @@ export async function getDatabaseStats() {
  * Cache Management Functions
  */
 
+// Cache version - increment this to force cache refresh for all users
+const CACHE_VERSION = 2;
+
 // Cache TTL (Time To Live) - 5 minutes
 const CACHE_TTL = 5 * 60 * 1000;
 
@@ -175,30 +178,43 @@ export async function updateCacheMetadata(cacheKey: string): Promise<void> {
 
 /**
  * Get cached prompts if fresh, otherwise return null
+ * Returns prompts sorted by promptNumber descending (newest first)
  */
 export async function getCachedPrompts(): Promise<Prompt[] | null> {
-  const isFresh = await isCacheFresh('prompts');
+  const cacheKey = `prompts_v${CACHE_VERSION}`;
+  const isFresh = await isCacheFresh(cacheKey);
   if (!isFresh) return null;
 
   const prompts = await db.prompts.toArray();
-  return prompts.length > 0 ? prompts : null;
+  if (prompts.length === 0) return null;
+
+  // Sort by promptNumber descending (newest first)
+  const sorted = prompts.sort((a, b) => {
+    const numA = Number(a.promptNumber) || 0;
+    const numB = Number(b.promptNumber) || 0;
+    return numB - numA;
+  });
+
+  return sorted;
 }
 
 /**
  * Cache prompts in IndexedDB
  */
 export async function cachePrompts(prompts: Prompt[]): Promise<void> {
+  const cacheKey = `prompts_v${CACHE_VERSION}`;
   // Clear existing prompts and add new ones
   await db.prompts.clear();
   await db.prompts.bulkAdd(prompts);
-  await updateCacheMetadata('prompts');
-  console.log(`[Cache] Stored ${prompts.length} prompts`);
+  await updateCacheMetadata(cacheKey);
+  console.log(`[Cache] Stored ${prompts.length} prompts with key ${cacheKey}`);
 }
 
 /**
  * Invalidate prompts cache (forces fresh fetch on next request)
  */
 export async function invalidatePromptsCache(): Promise<void> {
-  await db.cacheMetadata.delete('prompts');
+  const cacheKey = `prompts_v${CACHE_VERSION}`;
+  await db.cacheMetadata.delete(cacheKey);
   console.log('[Cache] Prompts cache invalidated');
 }
