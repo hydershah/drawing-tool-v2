@@ -108,8 +108,8 @@ export const promptStorage = {
 
     console.log('[promptStorage.fetchAndCachePrompts] Transformed prompts sample:', prompts[0]);
 
-    // Sort back to newest first for display
-    const sorted = prompts.sort((a, b) => b.createdAt - a.createdAt);
+    // Sort by prompt number (newest first = highest number first)
+    const sorted = prompts.sort((a, b) => (b.promptNumber || 0) - (a.promptNumber || 0));
 
     // Cache the prompts
     await cachePrompts(sorted);
