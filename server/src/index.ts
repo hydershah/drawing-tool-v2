@@ -38,7 +38,11 @@ app.get('/health', (req, res) => {
 app.get('/api/cache/stats', async (req, res) => {
   try {
     const stats = await getCacheStats();
-    res.json(stats);
+    const perfStats = getPerformanceStats();
+    res.json({
+      redis: stats,
+      performance: perfStats
+    });
   } catch (error) {
     console.error('Error getting cache stats:', error);
     res.status(500).json({ error: 'Failed to get cache stats' });

@@ -239,21 +239,23 @@ export class ArtworksCache {
   }
 
   /**
-   * Get approved artworks with caching
+   * Get approved artworks with permanent caching
    */
   static async getApproved() {
     return cacheWrapper(
       CACHE_KEYS.ARTWORKS_APPROVED,
       async () => {
+        console.log('📸 Fetching approved artworks from database (this should be rare)...');
         const approvedArtworks = await db
           .select()
           .from(artworks)
           .where(eq(artworks.status, 'approved'))
           .orderBy(desc(artworks.approvedAt));
 
+        console.log(`✅ Cached ${approvedArtworks.length} approved artworks permanently in Redis`);
         return approvedArtworks;
       },
-      CACHE_TTL.ARTWORK_LIST
+      CACHE_TTL.ARTWORK_APPROVED // 0 = permanent cache
     );
   }
 
@@ -344,9 +346,11 @@ export class ArtworksCache {
       .where(eq(artworks.id, id))
       .returning();
 
-    // Invalidate caches
+    // Invalidate caches - force refresh of approved artworks
     await cacheDel(CACHE_KEYS.ARTWORK(id));
-    await invalidateArtworksCache();
+    await cacheDel(CACHE_KEYS.ARTWORKS_APPROVED); // Clear permanent cache to force refresh
+    await cacheDel(CACHE_KEYS.ARTWORKS_PENDING);
+    console.log('🔄 Cleared approved artworks cache - will refresh on next request');
 
     return result[0];
   }
@@ -374,6 +378,15 @@ export class ArtworksCache {
    * Delete artwork and invalidate cache
    */
   static async delete(id: string) {
+    // First check if the artwork was approved
+    const artwork = await db
+      .select()
+      .from(artworks)
+      .where(eq(artworks.id, id))
+      .limit(1);
+
+    const wasApproved = artwork[0]?.status === 'approved';
+
     const result = await db
       .delete(artworks)
       .where(eq(artworks.id, id))
@@ -381,7 +394,14 @@ export class ArtworksCache {
 
     // Invalidate caches
     await cacheDel(CACHE_KEYS.ARTWORK(id));
-    await invalidateArtworksCache();
+
+    // If it was approved, clear the permanent approved cache
+    if (wasApproved) {
+      await cacheDel(CACHE_KEYS.ARTWORKS_APPROVED);
+      console.log('🔄 Cleared approved artworks cache after deletion');
+    }
+
+    await cacheDel(CACHE_KEYS.ARTWORKS_PENDING);
 
     return result[0];
   }

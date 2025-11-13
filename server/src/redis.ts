@@ -7,9 +7,11 @@ let redisClient: Redis | null = null;
 const CACHE_TTL = {
   PROMPTS_LIST: 900, // 15 minutes (lists change less frequently)
   ARTWORK_LIST: 900, // 15 minutes (lists change less frequently)
+  ARTWORK_APPROVED: 0, // No expiration - approved artworks cached permanently
   SINGLE_ITEM: 600, // 10 minutes (individual items are accessed frequently)
   SITE_CONTENT: 7200, // 2 hours (rarely changes)
   NEXT_NUMBER: 1800, // 30 minutes (changes incrementally)
+  PERMANENT: 0, // 0 means no expiration in Redis
 };
 
 // Cache key patterns
@@ -115,9 +117,11 @@ export async function cacheSet<T>(
     const redis = getRedis();
     const serialized = JSON.stringify(value);
 
-    if (ttl) {
+    if (ttl && ttl > 0) {
+      // Set with expiration if TTL is provided and greater than 0
       await redis.setex(key, ttl, serialized);
     } else {
+      // Set without expiration (permanent) if TTL is 0 or undefined
       await redis.set(key, serialized);
     }
   } catch (error) {
