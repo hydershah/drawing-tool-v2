@@ -126,11 +126,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setPrompts(prev => [optimisticPrompt, ...prev]);
 
     try {
-      // Create on backend
+      // Create on backend - this will invalidate cache
       const newPrompt = await promptStorage.create(prompt, email);
 
-      // Replace optimistic prompt with real one
-      setPrompts(prev => prev.map(p => p.id === tempId ? newPrompt : p));
+      // Refresh entire list from server to get all prompts with correct numbers
+      // This forces a fresh fetch since cache was invalidated
+      const allPrompts = await promptStorage.getAll({ useCache: false });
+      setPrompts(allPrompts);
 
       return newPrompt;
     } catch (error) {
@@ -156,6 +158,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Sync with backend in background
     try {
       await promptStorage.delete(id);
+      // Refresh list to get updated data
+      const allPrompts = await promptStorage.getAll({ useCache: false });
+      setPrompts(allPrompts);
     } catch (error) {
       console.error('Failed to delete prompt:', error);
       // Revert on error
@@ -167,7 +172,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addEmailToPrompt = useCallback(async (id: string, email: string) => {
     await promptStorage.addEmail(id, email);
-    setPrompts(prev => prev.map(p => p.id === id ? { ...p, email } : p));
+    // Refresh list to get updated data
+    const allPrompts = await promptStorage.getAll({ useCache: false });
+    setPrompts(allPrompts);
   }, []);
 
   const completePrompt = useCallback(async (id: string) => {
@@ -184,6 +191,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Sync with backend in background
     try {
       await promptStorage.complete(id);
+      // Refresh list to get updated data
+      const allPrompts = await promptStorage.getAll({ useCache: false });
+      setPrompts(allPrompts);
     } catch (error) {
       console.error('Failed to complete prompt:', error);
       // Revert on error
@@ -195,7 +205,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [prompts]);
 
   const refreshPrompts = useCallback(async () => {
-    const allPrompts = await promptStorage.getAll();
+    // Force fresh fetch from API
+    const allPrompts = await promptStorage.getAll({ useCache: false });
     setPrompts(allPrompts);
   }, []);
 
