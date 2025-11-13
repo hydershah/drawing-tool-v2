@@ -84,15 +84,9 @@ export const promptStorage = {
 
     console.log('[promptStorage.fetchAndCachePrompts] Sample prompt from API:', promptsData[0]);
 
-    // Sort by creation date (oldest first) to assign sequential numbers
-    const sortedSubmissions = [...promptsData].sort((a, b) => {
-      const timeA = a.timestamp || a.createdAt || a.created_at || 0;
-      const timeB = b.timestamp || b.createdAt || b.created_at || 0;
-      return timeA - timeB;
-    });
-
     // Transform API response to Prompt format
-    const prompts = sortedSubmissions.map((p: any, index: number) => ({
+    // Backend already orders by createdAt DESC and assigns sequential promptNumbers
+    const prompts = promptsData.map((p: any) => ({
       id: p.id,
       prompt: p.prompt,
       email: p.email || '',
@@ -102,14 +96,21 @@ export const promptStorage = {
       ...(p.completed_at && { completedAt: p.completed_at }),
       ...(p.artworkId && { artworkId: p.artworkId }),
       ...(p.artwork_id && { artworkId: p.artwork_id }),
-      // If backend doesn't provide promptNumber, generate it from index (1-based)
-      promptNumber: p.promptNumber || p.prompt_number || (index + 1),
+      // Backend provides promptNumber (or prompt_number)
+      promptNumber: p.promptNumber || p.prompt_number,
     }));
 
     console.log('[promptStorage.fetchAndCachePrompts] Transformed prompts sample:', prompts[0]);
 
     // Sort by prompt number (newest first = highest number first)
-    const sorted = prompts.sort((a, b) => (b.promptNumber || 0) - (a.promptNumber || 0));
+    // Ensure we treat promptNumber as a number for proper sorting
+    const sorted = prompts.sort((a, b) => {
+      const numA = Number(a.promptNumber) || 0;
+      const numB = Number(b.promptNumber) || 0;
+      return numB - numA;
+    });
+
+    console.log('[promptStorage.fetchAndCachePrompts] Sorted prompts - first:', sorted[0]?.promptNumber, 'last:', sorted[sorted.length - 1]?.promptNumber);
 
     // Cache the prompts
     await cachePrompts(sorted);
