@@ -50,7 +50,8 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const promptStorage = {
   async getAll(): Promise<Prompt[]> {
     // Express returns array directly, not wrapped
-    const promptsData = await apiCall<any[]>('prompts', {
+    // Load all prompts by setting a high limit (default is 50)
+    const promptsData = await apiCall<any[]>('prompts?limit=1000', {
       method: 'GET',
     });
 
