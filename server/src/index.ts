@@ -38,7 +38,7 @@ app.get('/api/prompts', async (req, res) => {
 
     const allPrompts = await db.select()
       .from(schema.prompts)
-      .orderBy(desc(schema.prompts.promptNumber), desc(schema.prompts.createdAt))
+      .orderBy(desc(schema.prompts.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -192,10 +192,10 @@ app.get('/api/artworks', async (req, res) => {
       ? db.select()
           .from(schema.artworks)
           .where(eq(schema.artworks.status, status))
-          .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt))
+          .orderBy(desc(schema.artworks.createdAt))
       : db.select()
           .from(schema.artworks)
-          .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt));
+          .orderBy(desc(schema.artworks.createdAt));
 
     const artworks = await artworksQuery.limit(limit).offset(offset);
 
@@ -239,7 +239,7 @@ app.get('/api/artworks/approved', async (req, res) => {
     const artworks = await db.select()
       .from(schema.artworks)
       .where(eq(schema.artworks.status, 'approved'))
-      .orderBy(desc(schema.artworks.promptNumber), desc(schema.artworks.createdAt))
+      .orderBy(desc(schema.artworks.createdAt))
       .limit(limit)
       .offset(offset);
 

@@ -3,10 +3,11 @@
  * Handles all API calls to Supabase backend
  */
 
-import { backendUrl, publicAnonKey } from '@/utils/supabase/info';
 import type { Prompt, Artwork } from '@/types';
 import * as emailService from './email';
 
+// Use Express backend instead of Supabase Edge Functions
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 const API_TIMEOUT = 30000; // 30 seconds (increased for large image payloads)
 
 /**
@@ -17,11 +18,10 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
   try {
-    const response = await fetch(`${backendUrl}/${endpoint}`, {
+    const response = await fetch(`${BACKEND_URL}/${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${publicAnonKey}`,
         ...options.headers,
       },
       signal: controller.signal,
@@ -49,12 +49,10 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
  */
 export const promptStorage = {
   async getAll(): Promise<Prompt[]> {
-    const response = await apiCall<{ success?: boolean; submissions?: any[]; data?: any[]; prompts?: any[] }>('prompts', {
+    // Express returns array directly, not wrapped
+    const promptsData = await apiCall<any[]>('prompts', {
       method: 'GET',
     });
-
-    // Handle multiple response formats: { submissions: [] }, { data: [] }, or { prompts: [] }
-    const promptsData = response.submissions || response.data || response.prompts || [];
 
     console.log('[promptStorage.getAll] Sample prompt from API:', promptsData[0]);
 
@@ -89,9 +87,10 @@ export const promptStorage = {
   async create(prompt: string, email: string): Promise<Prompt> {
     console.log('[promptStorage.create] Creating prompt with email:', email);
 
-    const response = await apiCall<{ success: boolean; id: string }>('submit-prompt', {
+    const id = `prompt_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    const response = await apiCall<{ id: string; prompt: string; email: string; status: string; createdAt: string }>('prompts', {
       method: 'POST',
-      body: JSON.stringify({ prompt, email }),
+      body: JSON.stringify({ id, prompt, email }),
     });
 
     console.log('[promptStorage.create] Prompt created');
@@ -112,16 +111,15 @@ export const promptStorage = {
   },
 
   async delete(id: string): Promise<void> {
-    await apiCall('delete-prompt', {
-      method: 'POST',
-      body: JSON.stringify({ promptId: id }),
+    await apiCall(`prompts/${id}`, {
+      method: 'DELETE',
     });
   },
 
   async addEmail(id: string, email: string): Promise<void> {
-    await apiCall('add-email-to-prompt', {
-      method: 'POST',
-      body: JSON.stringify({ promptId: id, email }),
+    await apiCall(`prompts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ email }),
     });
   },
 
@@ -137,12 +135,10 @@ export const promptStorage = {
  */
 export const artworkStorage = {
   async getAll(): Promise<Artwork[]> {
-    const response = await apiCall<{ success?: boolean; artworks?: any[]; data?: any[] }>('artworks', {
+    // Express returns array directly for approved artworks
+    const artworksData = await apiCall<any[]>('artworks?status=approved', {
       method: 'GET',
     });
-
-    // Handle both response formats: { artworks: [] } or { data: [] }
-    const artworksData = response.artworks || response.data || [];
 
     console.log('[artworkStorage.getAll] RAW API Response - Full first artwork:', JSON.stringify(artworksData[0], null, 2));
     console.log('[artworkStorage.getAll] RAW API Response - All field names:', Object.keys(artworksData[0] || {}));
@@ -182,12 +178,10 @@ export const artworkStorage = {
 
   async getPending(): Promise<Artwork[]> {
     try {
-      const response = await apiCall<{ success?: boolean; artworks?: any[]; data?: any[] }>('pending-artworks', {
+      // Express returns array directly for pending artworks
+      const artworksData = await apiCall<any[]>('artworks?status=pending', {
         method: 'GET',
       });
-
-      // Handle both response formats: { artworks: [] } or { data: [] }
-      const artworksData = response.artworks || response.data || [];
 
       console.log('[artworkStorage.getPending] RAW API Response - Full first artwork:', JSON.stringify(artworksData[0], null, 2));
       console.log('[artworkStorage.getPending] RAW API Response - All field names:', Object.keys(artworksData[0] || {}));
@@ -244,13 +238,17 @@ export const artworkStorage = {
     artistEmail?: string;
     isAdminCreated: boolean;
   }): Promise<Artwork> {
+    const id = `artwork_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+
     if (data.isAdminCreated) {
       // Admin artwork
-      const response = await apiCall<{ success: boolean; id: string }>('save-artwork', {
+      const response = await apiCall<{ id: string }>('artworks', {
         method: 'POST',
         body: JSON.stringify({
+          id,
           imageData: data.imageData,
-          prompt: '', // Admin artwork doesn't need prompt text
+          promptNumber: data.promptNumber || 1,
+          isAdminCreated: true,
         }),
       });
 
@@ -265,31 +263,23 @@ export const artworkStorage = {
       };
     } else {
       // User artwork submission
-      // Format promptNumber as 5-digit string (e.g., 00001, 00002)
-      const formattedPromptNumber = data.promptNumber
-        ? String(data.promptNumber).padStart(5, '0')
-        : '00000';
-
-      const payload: any = {
+      const payload = {
+        id,
         promptId: data.promptId,
-        prompt: data.promptText || '',
-        promptName: data.promptText || '',
-        promptNumber: formattedPromptNumber,
+        promptText: data.promptText || '',
+        promptNumber: data.promptNumber || 1,
         imageData: data.imageData,
         artistName: data.artistName || '',
+        artistEmail: data.artistEmail,
+        isAdminCreated: false,
       };
-
-      // Only include artistEmail if it's provided
-      if (data.artistEmail) {
-        payload.artistEmail = data.artistEmail;
-      }
 
       console.log('[artworkStorage.create] Submitting user artwork with payload:', {
         ...payload,
         imageData: payload.imageData ? `${payload.imageData.substring(0, 50)}... (${payload.imageData.length} chars)` : 'none',
       });
 
-      const response = await apiCall<{ success: boolean; id: string }>('submit-artwork', {
+      const response = await apiCall<{ id: string }>('artworks', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
@@ -326,24 +316,22 @@ export const artworkStorage = {
 
   async approve(id: string): Promise<void> {
     console.log('[artworkStorage.approve] Approving artwork with ID:', id);
-    const response = await apiCall('approve-artwork', {
-      method: 'POST',
-      body: JSON.stringify({ artworkId: id }),
+    const response = await apiCall(`artworks/${id}/approve`, {
+      method: 'PATCH',
     });
     console.log('[artworkStorage.approve] Backend response:', response);
   },
 
   async reject(id: string): Promise<void> {
-    await apiCall('reject-artwork', {
-      method: 'POST',
-      body: JSON.stringify({ artworkId: id }),
+    // Delete rejected artworks (Express doesn't have a separate reject endpoint)
+    await apiCall(`artworks/${id}`, {
+      method: 'DELETE',
     });
   },
 
   async delete(id: string): Promise<void> {
-    await apiCall('delete-artwork', {
-      method: 'POST',
-      body: JSON.stringify({ artworkId: id }),
+    await apiCall(`artworks/${id}`, {
+      method: 'DELETE',
     });
   },
 };
