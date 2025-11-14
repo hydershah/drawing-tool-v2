@@ -168,6 +168,27 @@ export class PromptsCache {
   }
 
   /**
+   * Reset prompt status to pending (e.g., when artwork is rejected/deleted)
+   */
+  static async resetToPending(id: string) {
+    const result = await db
+      .update(prompts)
+      .set({
+        status: 'pending',
+        completedAt: null,
+        artworkId: null,
+      })
+      .where(eq(prompts.id, id))
+      .returning();
+
+    // Invalidate caches
+    await cacheDel(CACHE_KEYS.PROMPT(id));
+    await invalidatePromptsCache();
+
+    return result[0];
+  }
+
+  /**
    * Delete prompt and invalidate cache
    */
   static async delete(id: string) {
@@ -227,8 +248,23 @@ export class ArtworksCache {
       key,
       async () => {
         const artworksList = await db
-          .select()
+          .select({
+            id: artworks.id,
+            promptId: artworks.promptId,
+            promptNumber: artworks.promptNumber,
+            imageData: artworks.imageData,
+            imageUrl: artworks.imageUrl,
+            imageKey: artworks.imageKey,
+            artistName: artworks.artistName,
+            artistEmail: artworks.artistEmail,
+            status: artworks.status,
+            isAdminCreated: artworks.isAdminCreated,
+            createdAt: artworks.createdAt,
+            approvedAt: artworks.approvedAt,
+            promptText: prompts.prompt,
+          })
           .from(artworks)
+          .leftJoin(prompts, eq(artworks.promptId, prompts.id))
           .orderBy(desc(artworks.createdAt))
           .limit(limit)
           .offset(offset);
@@ -260,10 +296,25 @@ export class ArtworksCache {
       async () => {
         console.log('📸 Fetching approved artworks from database (this should be rare)...');
         const approvedArtworks = await db
-          .select()
+          .select({
+            id: artworks.id,
+            promptId: artworks.promptId,
+            promptNumber: artworks.promptNumber,
+            imageData: artworks.imageData,
+            imageUrl: artworks.imageUrl,
+            imageKey: artworks.imageKey,
+            artistName: artworks.artistName,
+            artistEmail: artworks.artistEmail,
+            status: artworks.status,
+            isAdminCreated: artworks.isAdminCreated,
+            createdAt: artworks.createdAt,
+            approvedAt: artworks.approvedAt,
+            promptText: prompts.prompt,
+          })
           .from(artworks)
+          .leftJoin(prompts, eq(artworks.promptId, prompts.id))
           .where(eq(artworks.status, 'approved'))
-          .orderBy(desc(artworks.approvedAt));
+          .orderBy(desc(artworks.createdAt));
 
         // Return imageUrl instead of imageData when available
         const processedArtworks = approvedArtworks.map(artwork => {
@@ -293,8 +344,23 @@ export class ArtworksCache {
       CACHE_KEYS.ARTWORKS_PENDING,
       async () => {
         const pendingArtworks = await db
-          .select()
+          .select({
+            id: artworks.id,
+            promptId: artworks.promptId,
+            promptNumber: artworks.promptNumber,
+            imageData: artworks.imageData,
+            imageUrl: artworks.imageUrl,
+            imageKey: artworks.imageKey,
+            artistName: artworks.artistName,
+            artistEmail: artworks.artistEmail,
+            status: artworks.status,
+            isAdminCreated: artworks.isAdminCreated,
+            createdAt: artworks.createdAt,
+            approvedAt: artworks.approvedAt,
+            promptText: prompts.prompt,
+          })
           .from(artworks)
+          .leftJoin(prompts, eq(artworks.promptId, prompts.id))
           .where(eq(artworks.status, 'pending'))
           .orderBy(desc(artworks.createdAt));
 
@@ -437,6 +503,7 @@ export class ArtworksCache {
 
     const wasApproved = artwork[0]?.status === 'approved';
     const imageKey = artwork[0]?.imageKey;
+    const promptId = artwork[0]?.promptId;
 
     // Delete from R2 if image exists there
     if (imageKey) {
@@ -453,6 +520,16 @@ export class ArtworksCache {
       .delete(artworks)
       .where(eq(artworks.id, id))
       .returning();
+
+    // If artwork was linked to a prompt, reset the prompt status to pending
+    if (promptId) {
+      try {
+        await PromptsCache.resetToPending(promptId);
+        console.log(`[Delete Artwork] Reset prompt ${promptId} status to pending`);
+      } catch (err) {
+        console.error(`[Delete Artwork] Error resetting prompt status for ${promptId}:`, err);
+      }
+    }
 
     // Invalidate caches
     await cacheDel(CACHE_KEYS.ARTWORK(id));

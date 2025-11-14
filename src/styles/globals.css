@@ -75,8 +75,13 @@
     @apply border-border;
   }
 
+  html,
   body {
     @apply bg-background text-foreground;
+    height: 100%;
+  }
+
+  body {
     font-family: 'FK Grotesk Mono', 'Courier New', Courier, monospace;
     font-feature-settings: "rlig" 1, "calt" 1;
   }

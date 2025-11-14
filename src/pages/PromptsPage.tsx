@@ -223,18 +223,9 @@ export function PromptsPage() {
   }
 
   return (
-    <div className="space-y-6 md:space-y-8 mt-16 md:mt-24 px-4 md:px-8">
-      <div className="space-y-4 md:space-y-5">
-        {/* Header Title */}
-        <h1
-          className="text-foreground text-[14px] md:text-[15px] tracking-tight"
-          style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-          role="status"
-          aria-live="polite"
-        >
-          Browse {prompts.length} creative {prompts.length === 1 ? 'prompt' : 'prompts'} from our community
-        </h1>
-
+    <div className="h-screen overflow-y-auto">
+      <div className="space-y-6 md:space-y-8 mt-16 md:mt-24 px-4 md:px-8">
+        <div className="space-y-4 md:space-y-5">
         {/* Search Bar */}
         <div className="relative max-w-2xl w-full mx-auto">
           <label htmlFor="prompt-search" className="sr-only">
@@ -341,6 +332,7 @@ export function PromptsPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -83,15 +83,13 @@ function ArtworkCard({
         )}
       </div>
 
-      {artwork.promptText && (
-        <div
-          className="text-muted-foreground text-xs mb-2 line-clamp-2"
-          style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-          title={artwork.promptText}
-        >
-          {artwork.promptText}
-        </div>
-      )}
+      <div
+        className="text-foreground text-sm mb-2 line-clamp-2"
+        style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+        title={artwork.promptText || 'No prompt'}
+      >
+        {artwork.promptText || `Prompt ${formatPromptNumber(artwork.promptNumber)}`}
+      </div>
 
       {artwork.artistName && (
         <div
@@ -131,6 +129,7 @@ export function GalleryPage() {
     return artworks.filter(
       (artwork) =>
         artwork.artistName?.toLowerCase().includes(lowerQuery) ||
+        artwork.promptText?.toLowerCase().includes(lowerQuery) ||
         formatPromptNumber(artwork.promptNumber).toLowerCase().includes(lowerQuery)
     );
   }, [artworks, searchQuery]);
@@ -217,8 +216,9 @@ export function GalleryPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="space-y-6">
+    <div className="h-screen overflow-y-auto">
+      <div className="container mx-auto px-4 py-12">
+        <div className="space-y-6">
         {/* Search Bar */}
         <div className="space-y-4">
           <div className="text-foreground" role="status" aria-live="polite">
@@ -316,6 +316,7 @@ export function GalleryPage() {
             )}
           </>
         )}
+        </div>
       </div>
     </div>
   );

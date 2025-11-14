@@ -128,7 +128,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
       {/* Sidebar */}
       <div
         ref={sidebarRef}
-        className={`fixed left-0 top-0 h-full w-[380px] bg-background border-r border-border shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed left-0 top-0 h-full w-[480px] bg-background border-r border-border shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -142,7 +142,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
         </button>
 
         {/* Content */}
-        <div className="p-8 pt-24 pl-24">
+        <div className="p-8 pt-24 pl-24" style={{ fontFamily: 'Martina Plantijn, Georgia, serif' }}>
           {/* About the Project */}
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">About the Project</h2>

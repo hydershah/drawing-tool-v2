@@ -161,8 +161,8 @@ export function PromptSubmission() {
   const isEmailReady = email.trim().length > 0 && EMAIL_REGEX.test(email.trim());
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6 py-8 overflow-hidden">
-      <div className="w-full max-w-2xl space-y-2">
+    <div className="fixed inset-0 flex items-center justify-center">
+      <div className="w-full max-w-2xl px-6">
         {step === 'prompt' && (
           <form onSubmit={handlePromptContinue} noValidate>
             <div
@@ -197,6 +197,7 @@ export function PromptSubmission() {
                   onChange={handlePromptChange}
                   placeholder="What should I draw for you today?"
                   className="bg-transparent border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 px-0 flex-1 text-base md:text-lg h-7 md:h-8"
+                  style={{ fontFamily: 'Martina Plantijn, serif' }}
                   autoFocus
                   disabled={isMorphing}
                   maxLength={MAX_PROMPT_LENGTH}

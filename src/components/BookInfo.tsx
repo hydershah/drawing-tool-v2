@@ -84,10 +84,10 @@ export function BookInfo() {
       {/* Book Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary transition-all duration-200 shadow-lg"
+        className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 shadow-lg"
         aria-label="Book information"
       >
-        <BookOpen className="w-5 h-5" />
+        <BookOpen className="w-5 h-5 md:w-8 md:w-8" />
       </button>
     </div>
   );

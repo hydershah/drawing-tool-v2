@@ -193,7 +193,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
  */
 function AppRoutes() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background">
       <FixedNav />
       <Routes>
         <Route path="/" element={<HomePage />} />

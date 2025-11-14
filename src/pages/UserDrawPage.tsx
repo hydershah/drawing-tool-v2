@@ -226,7 +226,7 @@ export function UserDrawPage() {
       <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
         {/* Canvas */}
         <div className="w-full lg:w-auto lg:flex-shrink-0">
-          <div className="bg-muted/20 rounded-lg p-4 max-w-md mx-auto lg:mx-0">
+          <div className="bg-muted/20 rounded-lg p-4 max-w-3xl mx-auto lg:mx-0">
             <DrawingCanvas
               ref={canvasRef}
               brush={brush}
@@ -238,7 +238,7 @@ export function UserDrawPage() {
         {/* Controls */}
         <div className="w-full lg:w-96 lg:flex-shrink-0 space-y-4">
           {/* Drawing Prompt Display */}
-          <div className="bg-card border border-border rounded-lg p-4 mt-8 text-center">
+          <div className="bg-card border border-border rounded-lg p-4 mt-8 text-left">
             <div className="text-muted-foreground text-xs mb-2" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               Drawing Prompt:
             </div>
@@ -413,7 +413,7 @@ export function UserDrawPage() {
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" aria-hidden="true" />
-                    Submit for Approval
+                    Submit
                   </>
                 )}
               </Button>
