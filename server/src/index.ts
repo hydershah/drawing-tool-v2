@@ -652,12 +652,34 @@ app.post('/api/emails/artwork-approved', async (req, res) => {
 
 // Serve static files from the frontend build directory
 const frontendDistPath = path.join(__dirname, '../../dist');
-app.use(express.static(frontendDistPath));
+const fs = require('fs');
 
-// Handle React Router - send all non-API requests to index.html
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(frontendDistPath, 'index.html'));
-});
+// Check if frontend build exists
+if (fs.existsSync(frontendDistPath)) {
+  console.log('[Server] Frontend build directory found:', frontendDistPath);
+  app.use(express.static(frontendDistPath));
+
+  // Handle React Router - send all non-API requests to index.html
+  app.get('*', (_req, res) => {
+    const indexPath = path.join(frontendDistPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).json({ error: 'Frontend not built. Please run: npm run build' });
+    }
+  });
+} else {
+  console.warn('[Server] ⚠️  Frontend build directory not found:', frontendDistPath);
+  console.warn('[Server] API-only mode - frontend routes will return 404');
+
+  // API-only mode fallback
+  app.get('*', (_req, res) => {
+    res.status(404).json({
+      error: 'Frontend not available',
+      message: 'API is running in backend-only mode. Frontend build not found at: ' + frontendDistPath
+    });
+  });
+}
 
 // ============================================
 // START SERVER
