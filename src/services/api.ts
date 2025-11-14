@@ -4,7 +4,10 @@
 
 import type { Prompt, Artwork } from '@/types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// In production, use relative URL since frontend is served by backend
+// In development, use localhost
+const API_URL = import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3001' : '');
 
 /**
  * Pagination types

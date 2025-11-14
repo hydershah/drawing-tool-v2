@@ -7,7 +7,10 @@ import type { Prompt, Artwork } from '@/types';
 import { getCachedPrompts, cachePrompts, invalidatePromptsCache } from './database';
 
 // Use Express backend instead of Supabase Edge Functions
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
+// In production, use relative URL since frontend is served by backend
+// In development, use localhost
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 const API_TIMEOUT = 30000; // 30 seconds (increased for large image payloads)
 
 /**

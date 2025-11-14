@@ -4,8 +4,10 @@
  */
 
 // Get email API URL from environment variable
-// Default to localhost for development
-const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+// In production, use relative URL since frontend is served by backend
+// In development, use localhost
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3001' : '');
 
 // Log the configured email API URL for debugging
 console.log('[Email Service] Configured EMAIL_API_URL:', EMAIL_API_URL);
