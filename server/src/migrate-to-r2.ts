@@ -90,16 +90,11 @@ async function runMigration(options: {
 
   try {
     // Get all artworks that need migration
-    let query = db
+    const artworksToMigrate = await db
       .select()
       .from(artworks)
-      .where(isNotNull(artworks.imageData));
-
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    const artworksToMigrate = await query;
+      .where(isNotNull(artworks.imageData))
+      .limit(limit || 999999);
     stats.total = artworksToMigrate.length;
 
     console.log(`Found ${stats.total} artworks to migrate`);
