@@ -54,11 +54,16 @@ export function initRedis(): Redis {
   redisClient = new Redis(redisUrl, {
     maxRetriesPerRequest: 3,
     retryStrategy: (times: number) => {
+      // Stop retrying after 3 attempts in production
+      if (times > 3) {
+        console.warn('⚠️  Redis connection failed after 3 retries, continuing without cache');
+        return null; // Stop retrying
+      }
       const delay = Math.min(times * 50, 2000);
       return delay;
     },
     enableReadyCheck: true,
-    lazyConnect: false,
+    lazyConnect: true, // Don't connect immediately, allow app to start
   });
 
   redisClient.on('connect', () => {
@@ -66,11 +71,17 @@ export function initRedis(): Redis {
   });
 
   redisClient.on('error', (err) => {
-    console.error('❌ Redis connection error:', err);
+    console.warn('⚠️  Redis connection error (app will continue without cache):', err.message);
   });
 
   redisClient.on('ready', () => {
     console.log('✅ Redis is ready to accept commands');
+  });
+
+  // Try to connect, but don't block app startup if it fails
+  redisClient.connect().catch((err) => {
+    console.warn('⚠️  Failed to connect to Redis on startup:', err.message);
+    console.log('ℹ️  Application will continue without Redis caching');
   });
 
   return redisClient;
