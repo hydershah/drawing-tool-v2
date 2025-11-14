@@ -3,18 +3,24 @@
  * Admin interface for creating artwork with prompt selection
  */
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { DrawingCanvas, type DrawingCanvasHandle } from '@/components/canvas/DrawingCanvas';
-import { CanvasControls } from '@/components/canvas/CanvasControls';
 import { useApp } from '@/contexts/AppContext';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Slider } from '@/components/ui/Slider';
 import { toast } from 'sonner';
-import { Search, Mail, CheckCircle2 } from 'lucide-react';
+import { Search, Mail, CheckCircle2, Trash2, Download } from 'lucide-react';
 import {
   DEFAULT_BRUSH_SIZE,
   DEFAULT_BRUSH_DENSITY,
   DEFAULT_BRUSH_CONTRAST,
+  BRUSH_SIZE_MIN,
+  BRUSH_SIZE_MAX,
+  BRUSH_DENSITY_MIN,
+  BRUSH_DENSITY_MAX,
+  BRUSH_CONTRAST_MIN,
+  BRUSH_CONTRAST_MAX,
 } from '@/utils/constants';
 import type { BrushSettings, Prompt } from '@/types';
 
@@ -47,9 +53,45 @@ export function AdminDrawPage() {
       .slice(0, 10);
   }, [prompts, searchQuery]);
 
-  const handleClear = () => {
-    canvasRef.current?.clear();
-  };
+  const handleBrushSizeChange = useCallback((value: number[]) => {
+    setBrush((prev) => ({ ...prev, size: value[0] }));
+  }, []);
+
+  const handleInkDensityChange = useCallback((value: number[]) => {
+    setBrush((prev) => ({ ...prev, density: value[0] }));
+  }, []);
+
+  const handleContrastChange = useCallback((value: number[]) => {
+    setBrush((prev) => ({ ...prev, contrast: value[0] }));
+  }, []);
+
+  const handleClear = useCallback(() => {
+    if (!canvasRef.current) return;
+    canvasRef.current.clear();
+  }, []);
+
+  const downloadCanvas = useCallback(() => {
+    if (!canvasRef.current) return;
+
+    try {
+      const imageData = canvasRef.current.exportImage(false);
+      const filename = selectedPrompt
+        ? selectedPrompt.prompt
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+        : 'admin-drawing';
+
+      const link = document.createElement('a');
+      link.download = `${filename}.png`;
+      link.href = imageData;
+      link.click();
+      toast.success('Drawing downloaded in high resolution!');
+    } catch (error) {
+      console.error('Error downloading canvas:', error);
+      toast.error('Failed to download. Please try again.');
+    }
+  }, [selectedPrompt]);
 
   const handlePromptSelect = (prompt: Prompt) => {
     setSelectedPrompt(prompt);
@@ -111,22 +153,29 @@ export function AdminDrawPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h1
-        className="text-[15px] font-medium mb-8"
-        style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-      >
-        Create Artwork
-      </h1>
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="flex justify-center">
-          <DrawingCanvas ref={canvasRef} brush={brush} />
+    <div className="min-h-screen flex flex-col items-center justify-start pt-6 pb-6 px-4">
+      {/* Main Content Container */}
+      <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
+        {/* Canvas */}
+        <div className="w-full lg:w-auto lg:flex-shrink-0">
+          <div className="bg-muted/20 rounded-lg p-4 max-w-md mx-auto lg:mx-0">
+            <DrawingCanvas ref={canvasRef} brush={brush} />
+          </div>
         </div>
-        <div className="space-y-6">
+
+        {/* Controls */}
+        <div className="w-full lg:w-96 lg:flex-shrink-0 space-y-4">
+          {/* Page Title */}
+          <div className="bg-card border border-border rounded-lg p-4 mt-8 text-center">
+            <div className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+              Admin Draw
+            </div>
+          </div>
+
           {/* Prompt Selection */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <label
-              className="text-[13px] text-muted-foreground"
+              className="text-muted-foreground text-sm font-medium"
               style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             >
               Select Prompt (Optional)
@@ -144,7 +193,7 @@ export function AdminDrawPage() {
                 }}
                 onFocus={() => setShowPromptDropdown(true)}
                 placeholder="Search for a prompt..."
-                className="pl-10 pr-20 text-[13px]"
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-10 pr-20 h-10 transition-all duration-200 hover:border-primary focus:border-primary text-[13px]"
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               />
               {selectedPrompt && (
@@ -210,9 +259,9 @@ export function AdminDrawPage() {
           </div>
 
           {/* Email Input */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <label
-              className="text-[13px] text-muted-foreground"
+              className="text-muted-foreground text-sm font-medium"
               style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             >
               Email for Notification (Optional)
@@ -227,19 +276,127 @@ export function AdminDrawPage() {
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 placeholder="user@example.com"
-                className="pl-10 text-[13px]"
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-10 h-10 transition-all duration-200 hover:border-primary focus:border-primary"
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               />
             </div>
           </div>
 
-          {/* Canvas Controls */}
-          <CanvasControls
-            brush={brush}
-            onBrushChange={setBrush}
-            onClear={handleClear}
-            onSave={handleSave}
-          />
+          <div className="border-t border-border my-5"></div>
+
+          {/* Brush Controls */}
+          <div className="space-y-5">
+            {/* Brush Size */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label htmlFor="brush-size" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                  Brush Size
+                </label>
+                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                  {brush.size}px
+                </span>
+              </div>
+              <Slider
+                id="brush-size"
+                value={[brush.size]}
+                onValueChange={handleBrushSizeChange}
+                min={BRUSH_SIZE_MIN}
+                max={BRUSH_SIZE_MAX}
+                step={1}
+                className="w-full"
+                aria-label="Brush size"
+              />
+            </div>
+
+            {/* Ink Density */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label htmlFor="ink-density" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                  Ink Density
+                </label>
+                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                  {brush.density}%
+                </span>
+              </div>
+              <Slider
+                id="ink-density"
+                value={[brush.density]}
+                onValueChange={handleInkDensityChange}
+                min={BRUSH_DENSITY_MIN}
+                max={BRUSH_DENSITY_MAX}
+                step={1}
+                className="w-full"
+                aria-label="Ink density"
+              />
+            </div>
+
+            {/* Contrast */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label htmlFor="contrast" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                  Contrast
+                </label>
+                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                  {brush.contrast}%
+                </span>
+              </div>
+              <Slider
+                id="contrast"
+                value={[brush.contrast]}
+                onValueChange={handleContrastChange}
+                min={BRUSH_CONTRAST_MIN}
+                max={BRUSH_CONTRAST_MAX}
+                step={1}
+                className="w-full"
+                aria-label="Contrast"
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-border my-5"></div>
+
+          {/* Actions */}
+          <div>
+            {/* Icon Buttons */}
+            <div className="flex gap-4 mb-6">
+              <button
+                onClick={handleClear}
+                className="flex-1 h-10 rounded-lg bg-card border border-border flex items-center justify-center gap-2 text-muted-foreground hover:bg-accent hover:text-foreground hover:border-primary transition-all duration-200 px-4"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+                aria-label="Clear canvas"
+                type="button"
+              >
+                <Trash2 className="w-5 h-5" aria-hidden="true" />
+                <span className="text-sm">Clear</span>
+              </button>
+
+              <button
+                onClick={downloadCanvas}
+                className="flex-1 h-10 rounded-lg bg-card border border-border flex items-center justify-center gap-2 text-muted-foreground hover:bg-accent hover:text-foreground hover:border-primary transition-all duration-200 px-4"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+                aria-label="Download drawing"
+                type="button"
+              >
+                <Download className="w-5 h-5" aria-hidden="true" />
+                <span className="text-sm">Download</span>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <Button
+                onClick={handleSave}
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-6 py-4 transition-all duration-200 text-sm font-semibold"
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+                type="button"
+              >
+                Save to Gallery
+              </Button>
+            </div>
+          </div>
+
+          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            Create artwork as admin. If you select a prompt, it will be marked as completed. If you provide an email, a notification will be sent.
+          </div>
         </div>
       </div>
     </div>
