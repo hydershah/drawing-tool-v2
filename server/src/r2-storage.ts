@@ -228,6 +228,14 @@ export async function listArtworkImages(artworkId: string): Promise<string[]> {
 }
 
 /**
+ * Check if a string is an R2 URL (vs base64 data)
+ */
+export function isImageUrl(data: string): boolean {
+  // Check if it starts with http:// or https://
+  return data.startsWith('http://') || data.startsWith('https://');
+}
+
+/**
  * Extract key from R2 URL
  */
 export function getKeyFromUrl(url: string): string | null {
@@ -250,4 +258,5 @@ export default {
   getSignedImageUrl,
   listArtworkImages,
   getKeyFromUrl,
+  isImageUrl,
 };
