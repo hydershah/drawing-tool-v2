@@ -26,7 +26,9 @@ export const artworks = pgTable('artworks', {
   id: text('id').primaryKey(),
   promptId: text('prompt_id').references(() => prompts.id, { onDelete: 'set null' }),
   promptNumber: integer('prompt_number').notNull(),
-  imageData: text('image_data').notNull(), // base64 encoded image or URL
+  imageData: text('image_data'), // DEPRECATED: base64 encoded image (migrating to imageUrl)
+  imageUrl: text('image_url'), // New: URL to image stored in R2
+  imageKey: text('image_key'), // R2 storage key for deletion
   artistName: text('artist_name'),
   artistEmail: text('artist_email'),
   status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'

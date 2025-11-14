@@ -4,7 +4,6 @@
  */
 
 import type { Prompt, Artwork } from '@/types';
-import * as emailService from './email';
 import { getCachedPrompts, cachePrompts, invalidatePromptsCache } from './database';
 
 // Use Express backend instead of Supabase Edge Functions
@@ -137,11 +136,8 @@ export const promptStorage = {
     // Invalidate cache to ensure fresh data on next fetch
     await invalidatePromptsCache();
 
-    // Send confirmation email via Express email API (non-blocking)
-    // Note: Supabase backend doesn't send prompt emails, so we call Express API here
-    emailService.sendPromptSubmissionEmail(email, prompt).catch(err => {
-      console.error('[promptStorage.create] Failed to send prompt submission email:', err);
-    });
+    // Note: Email is sent by the backend when the prompt is created,
+    // so we don't need to send it here to avoid duplicates
 
     return {
       id: response.id,
@@ -200,7 +196,7 @@ export const artworkStorage = {
         id: a.id,
         promptNumber: a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? null,
         promptText: a.prompt || a.promptText || a.prompt_text || a.prompttext || null,
-        imageData: a.imageData ?? a.image_data ?? a.imageurl ?? a.image_url,
+        imageData: a.imageData ?? a.image_data ?? a.imageUrl ?? a.imageurl ?? a.image_url ?? a.image,
         promptId: a.promptId ?? a.prompt_id ?? a.promptid ?? null,
         artistName: a.artistName ?? a.artist_name ?? a.artistname ?? null,
         artistEmail: a.artistEmail ?? a.artist_email ?? a.artistemail ?? null,
@@ -241,7 +237,7 @@ export const artworkStorage = {
         const transformed = {
           id: a.id,
           promptNumber: a.promptNumber ?? a.prompt_number ?? a.promptnumber ?? null,
-          imageData: a.imageUrl ?? a.imageData ?? a.image_data,
+          imageData: a.imageData ?? a.image_data ?? a.imageUrl ?? a.imageurl ?? a.image_url ?? a.image,
           promptId: a.promptId ?? a.prompt_id ?? a.promptid ?? null,
           promptText: a.prompt || a.promptText || a.prompt_text || a.prompttext,
           artistName: a.artistName ?? a.artist_name ?? a.artistname ?? null,
@@ -337,18 +333,8 @@ export const artworkStorage = {
 
       console.log('[artworkStorage.create] Backend response:', response);
 
-      // Send confirmation email to artist via Express email API (non-blocking)
-      // Note: Supabase backend doesn't send artwork emails, so we call Express API here
-      if (data.artistEmail && data.artistName) {
-        emailService.sendArtworkSubmissionEmail(
-          data.artistEmail,
-          data.artistName,
-          data.promptText || 'Your artwork',
-          data.imageData
-        ).catch(err => {
-          console.error('[artworkStorage.create] Failed to send artwork submission email:', err);
-        });
-      }
+      // Note: Artwork submission email is sent by the backend when the artwork is created,
+      // so we don't need to send it here to avoid duplicates
 
       return {
         id: response.id,

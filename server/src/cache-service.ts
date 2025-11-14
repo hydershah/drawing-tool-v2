@@ -12,6 +12,7 @@ import {
   invalidateArtworksCache,
   invalidateSiteContentCache,
 } from './redis';
+import r2Storage from './r2-storage';
 
 /**
  * Prompts Cache Service
@@ -232,7 +233,19 @@ export class ArtworksCache {
           .limit(limit)
           .offset(offset);
 
-        return artworksList;
+        // Return imageUrl instead of imageData when available
+        const processedArtworks = artworksList.map(artwork => {
+          if (artwork.imageUrl) {
+            return {
+              ...artwork,
+              imageData: undefined,
+              image: artwork.imageUrl,
+            };
+          }
+          return artwork;
+        });
+
+        return processedArtworks;
       },
       CACHE_TTL.ARTWORK_LIST
     );
@@ -252,8 +265,21 @@ export class ArtworksCache {
           .where(eq(artworks.status, 'approved'))
           .orderBy(desc(artworks.approvedAt));
 
-        console.log(`✅ Cached ${approvedArtworks.length} approved artworks permanently in Redis`);
-        return approvedArtworks;
+        // Return imageUrl instead of imageData when available
+        const processedArtworks = approvedArtworks.map(artwork => {
+          if (artwork.imageUrl) {
+            // If we have a URL, don't send base64 data
+            return {
+              ...artwork,
+              imageData: undefined, // Remove base64 data
+              image: artwork.imageUrl, // Provide URL as 'image' field
+            };
+          }
+          return artwork;
+        });
+
+        console.log(`✅ Cached ${processedArtworks.length} approved artworks permanently in Redis`);
+        return processedArtworks;
       },
       CACHE_TTL.ARTWORK_APPROVED // 0 = permanent cache
     );
@@ -320,6 +346,30 @@ export class ArtworksCache {
    * Create new artwork and invalidate cache
    */
   static async create(artworkData: any) {
+    // If base64 image data is provided, upload to R2
+    if (artworkData.imageData && artworkData.imageData.startsWith('data:image')) {
+      console.log('📤 Uploading new artwork image to R2...');
+      const uploadResult = await r2Storage.uploadBase64Image(
+        artworkData.imageData,
+        artworkData.id,
+        {
+          optimize: true,
+          maxWidth: 2000,
+          quality: 85,
+        }
+      );
+
+      if (uploadResult.success) {
+        // Replace base64 with URL
+        artworkData.imageUrl = uploadResult.url;
+        artworkData.imageKey = uploadResult.key;
+        artworkData.imageData = null; // Don't store base64 anymore
+        console.log(`✅ Image uploaded to R2: ${uploadResult.url}`);
+      } else {
+        console.error('Failed to upload to R2, falling back to base64:', uploadResult.error);
+      }
+    }
+
     const result = await db.insert(artworks).values(artworkData).returning();
 
     // Invalidate related caches
@@ -378,7 +428,7 @@ export class ArtworksCache {
    * Delete artwork and invalidate cache
    */
   static async delete(id: string) {
-    // First check if the artwork was approved
+    // First check if the artwork was approved and has an R2 image
     const artwork = await db
       .select()
       .from(artworks)
@@ -386,6 +436,18 @@ export class ArtworksCache {
       .limit(1);
 
     const wasApproved = artwork[0]?.status === 'approved';
+    const imageKey = artwork[0]?.imageKey;
+
+    // Delete from R2 if image exists there
+    if (imageKey) {
+      console.log(`🗑️ Deleting image from R2: ${imageKey}`);
+      const deleted = await r2Storage.deleteImage(imageKey);
+      if (deleted) {
+        console.log('✅ Image deleted from R2');
+      } else {
+        console.error('⚠️ Failed to delete image from R2');
+      }
+    }
 
     const result = await db
       .delete(artworks)

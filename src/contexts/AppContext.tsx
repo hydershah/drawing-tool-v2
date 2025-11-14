@@ -5,7 +5,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { Prompt, Artwork } from '@/types';
 import { promptStorage, artworkStorage, adminStorage } from '@/services/supabase-storage';
-import * as emailService from '@/services/email';
 
 interface AppContextType {
   // Loading state
@@ -263,22 +262,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setPendingArtworks(prev => prev.map(a => a.id === tempId ? newArtwork : a));
       }
 
-      // Send "prompt used" email to prompt owner (if not admin-created)
-      if (!data.isAdminCreated && data.promptId && data.promptText && data.artistName) {
-        const prompt = prompts.find(p => p.id === data.promptId);
-        if (prompt?.email) {
-          console.log('[AppContext] Sending prompt used email to prompt owner:', prompt.email);
-          emailService.sendPromptUsedEmail(
-            prompt.email,
-            data.promptText,
-            data.artistName
-          ).catch(err => {
-            console.error('[AppContext] Failed to send prompt used email:', err);
-          });
-        } else {
-          console.log('[AppContext] No email found for prompt owner');
-        }
-      }
+      // Note: "Prompt used" email is sent by the backend when the artwork is created,
+      // so we don't need to send it here to avoid duplicates
 
       // Refresh prompts in background to get updated status
       if (data.promptId) {
@@ -314,17 +299,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       await artworkStorage.approve(id);
 
-      // Send approval emails (non-blocking)
-      const promptSubmitterEmail = pendingArtwork.promptId
-        ? prompts.find(p => p.id === pendingArtwork.promptId)?.email || undefined
-        : undefined;
-
-      emailService.sendArtworkApprovalEmails(
-        pendingArtwork.artistEmail || undefined,
-        pendingArtwork.artistName || undefined,
-        promptSubmitterEmail,
-        pendingArtwork.promptText || 'Your prompt'
-      );
+      // Note: Approval emails are sent by the backend when the artwork is approved,
+      // so we don't need to send them here to avoid duplicates
 
       // Refresh prompts to get updated completion status
       if (pendingArtwork.promptId) {

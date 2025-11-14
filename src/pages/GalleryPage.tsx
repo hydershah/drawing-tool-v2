@@ -51,7 +51,7 @@ function ArtworkCard({
           </div>
         ) : (
           <img
-            src={artwork.imageData}
+            src={artwork.image || artwork.imageUrl || artwork.imageData}
             alt={`Artwork ${formatPromptNumber(artwork.promptNumber)}`}
             className={`w-full h-auto transition-opacity duration-300 ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
