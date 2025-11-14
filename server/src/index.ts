@@ -663,7 +663,7 @@ app.get('*', (_req, res) => {
 // START SERVER
 // ============================================
 
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`[Server] Running on port ${PORT}`);
   console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`[Server] Serving frontend from: ${frontendDistPath}`);
