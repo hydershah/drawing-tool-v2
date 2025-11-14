@@ -64,10 +64,10 @@ function NavButton({
   const buttonVariant = variant === 'destructive' ? 'ghost' : isActive ? 'default' : 'ghost';
   const className =
     variant === 'destructive'
-      ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10 w-12 h-12 md:w-16 md:h-16 rounded-full p-0'
+      ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10 w-10 h-10 md:w-16 md:h-16 rounded-full p-0'
       : isActive
-      ? 'bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full p-0'
-      : 'text-muted-foreground hover:text-foreground hover:bg-accent w-12 h-12 md:w-16 md:h-16 rounded-full p-0';
+      ? 'bg-primary text-primary-foreground w-10 h-10 md:w-16 md:h-16 rounded-full p-0'
+      : 'text-muted-foreground hover:text-foreground hover:bg-accent w-10 h-10 md:w-16 md:h-16 rounded-full p-0';
 
   return (
     <Tooltip>
@@ -110,18 +110,18 @@ function FixedNav() {
       <Logo onClick={handleLogoClick} isOpen={isSidebarOpen} />
 
       {/* Navigation icons in top-right */}
-      <div className="fixed top-2 right-2 md:top-4 md:right-4 flex gap-2 md:gap-4 z-50">
+      <div className="fixed top-2 right-2 md:top-4 md:right-4 flex flex-wrap gap-1.5 md:gap-4 z-50 max-w-[calc(100vw-80px)] md:max-w-none justify-end">
         {/* Public navigation */}
         <NavButton
           to="/prompts"
           isActive={location.pathname === '/prompts'}
-          icon={<FileText className="w-6 h-6 md:w-8 md:h-8" />}
+          icon={<FileText className="w-5 h-5 md:w-8 md:h-8" />}
           tooltip="Browse Prompts"
         />
         <NavButton
           to="/gallery"
           isActive={location.pathname === '/gallery'}
-          icon={<Grid3x3 className="w-6 h-6 md:w-8 md:h-8" />}
+          icon={<Grid3x3 className="w-5 h-5 md:w-8 md:h-8" />}
           tooltip="Gallery"
         />
 
@@ -131,32 +131,32 @@ function FixedNav() {
             <NavButton
               to="/admin/prompts"
               isActive={location.pathname === '/admin/prompts'}
-              icon={<List className="w-6 h-6 md:w-8 md:h-8" />}
+              icon={<List className="w-5 h-5 md:w-8 md:h-8" />}
               tooltip="Manage Prompts"
             />
             <NavButton
               to="/admin/approvals"
               isActive={location.pathname === '/admin/approvals'}
-              icon={<CheckSquare className="w-6 h-6 md:w-8 md:h-8" />}
+              icon={<CheckSquare className="w-5 h-5 md:w-8 md:h-8" />}
               tooltip="Approve Artworks"
             />
             <NavButton
               to="/admin/draw"
               isActive={location.pathname === '/admin/draw'}
-              icon={<Palette className="w-6 h-6 md:w-8 md:h-8" />}
+              icon={<Palette className="w-5 h-5 md:w-8 md:h-8" />}
               tooltip="Draw"
             />
             <NavButton
               to="/admin/content"
               isActive={location.pathname === '/admin/content'}
-              icon={<Settings className="w-6 h-6 md:w-8 md:h-8" />}
+              icon={<Settings className="w-5 h-5 md:w-8 md:h-8" />}
               tooltip="Site Content"
             />
             <NavButton
               to="/"
               isActive={false}
               onClick={logout}
-              icon={<LogOut className="w-6 h-6 md:w-8 md:h-8" />}
+              icon={<LogOut className="w-5 h-5 md:w-8 md:h-8" />}
               tooltip="Logout"
               variant="destructive"
             />

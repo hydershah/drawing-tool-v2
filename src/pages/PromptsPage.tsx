@@ -32,8 +32,57 @@ function PromptItem({
 
   return (
     <div>
-      <div className="px-8 py-5 hover:bg-accent/10 transition-colors">
-        <div className="flex items-center gap-8">
+      <div className="px-4 md:px-8 py-4 md:py-5 hover:bg-accent/10 transition-colors">
+        {/* Mobile Layout (Stacked) */}
+        <div className="flex md:hidden flex-col gap-3">
+          {/* Prompt Number and Date Row */}
+          <div className="flex items-center justify-between">
+            <div
+              className="text-muted-foreground text-[13px] tracking-wide font-medium"
+              style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+            >
+              {formattedPromptNumber}
+            </div>
+            <div
+              className="text-muted-foreground text-[11px]"
+              style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+            >
+              {formattedDate}
+            </div>
+          </div>
+
+          {/* Prompt Text */}
+          <div
+            className="text-foreground text-[14px] leading-relaxed"
+            style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+          >
+            {prompt.prompt}
+          </div>
+
+          {/* Status/Button */}
+          <div className="flex items-center justify-center">
+            {prompt.status === 'completed' ? (
+              <div className="px-3 py-1.5 bg-green-500/15 text-green-400 rounded-md text-[11px] font-medium tracking-wide flex items-center gap-1.5 whitespace-nowrap">
+                <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Completed</span>
+              </div>
+            ) : (
+              <Button
+                onClick={() => onDrawClick(prompt)}
+                size="sm"
+                variant="outline"
+                className="transition-all duration-200 whitespace-nowrap text-[12px] h-9 px-4 w-full"
+                aria-label={`Draw: ${prompt.prompt}`}
+              >
+                <Paintbrush className="w-4 h-4 mr-2" aria-hidden="true" />
+                Draw this prompt
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Layout (Horizontal) */}
+        <div className="hidden md:flex items-center gap-8">
           {/* Left: Prompt Text and Date */}
           <div className="flex-1 min-w-0 py-2">
             <div
@@ -86,7 +135,7 @@ function PromptItem({
         </div>
       </div>
       {!isLast && (
-        <div className="px-8">
+        <div className="px-4 md:px-8">
           <Separator className="bg-border" />
         </div>
       )}
@@ -174,11 +223,11 @@ export function PromptsPage() {
   }
 
   return (
-    <div className="space-y-8 mt-24 px-8">
-      <div className="space-y-5">
+    <div className="space-y-6 md:space-y-8 mt-16 md:mt-24 px-4 md:px-8">
+      <div className="space-y-4 md:space-y-5">
         {/* Header Title */}
         <h1
-          className="text-foreground text-[15px] tracking-tight"
+          className="text-foreground text-[14px] md:text-[15px] tracking-tight"
           style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
           role="status"
           aria-live="polite"
@@ -192,7 +241,7 @@ export function PromptsPage() {
             Search prompts
           </label>
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"
+            className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"
             aria-hidden="true"
           />
           <Input
@@ -200,7 +249,7 @@ export function PromptsPage() {
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="Search prompts..."
-            className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-11 pr-11 rounded-[24px] text-[14px] h-11 focus:border-primary focus:ring-ring shadow-sm transition-all"
+            className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-10 md:pl-11 pr-10 md:pr-11 rounded-[24px] text-[13px] md:text-[14px] h-10 md:h-11 focus:border-primary focus:ring-ring shadow-sm transition-all"
             style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             autoComplete="off"
             aria-label="Search prompts"
@@ -208,7 +257,7 @@ export function PromptsPage() {
           {searchQuery && (
             <button
               onClick={clearSearch}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5"
+              className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5"
               aria-label="Clear search"
               type="button"
             >
