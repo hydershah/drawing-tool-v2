@@ -47,7 +47,7 @@ export const STORAGE_KEYS = {
 } as const;
 
 // Admin
-export const ADMIN_PASSWORD = 'admin123'; // In production, use proper authentication
+export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123'; // Fallback to default if env var not set
 
 // Pagination
 export const ITEMS_PER_PAGE = 20;

@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { Prompt, Artwork } from '@/types';
 import { promptStorage, artworkStorage, adminStorage } from '@/services/supabase-storage';
+import { ADMIN_PASSWORD } from '@/utils/constants';
 
 interface AppContextType {
   // Loading state
@@ -369,7 +370,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Admin operations
   const login = useCallback((password: string) => {
     // In a real app, this would be a proper authentication system
-    if (password === 'admin123') {
+    if (password === ADMIN_PASSWORD) {
       adminStorage.login();
       setIsAdmin(true);
       return true;
