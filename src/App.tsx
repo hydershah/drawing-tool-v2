@@ -110,7 +110,7 @@ function FixedNav() {
       <Logo onClick={handleLogoClick} isOpen={isSidebarOpen} />
 
       {/* Navigation icons in top-right */}
-      <div className="fixed top-2 right-2 md:top-4 md:right-4 flex flex-wrap gap-1.5 md:gap-4 z-50 max-w-[calc(100vw-80px)] md:max-w-none justify-end">
+      <div className="fixed top-2 right-2 md:top-4 md:right-4 flex flex-wrap gap-1.5 md:gap-4 z-[9999] max-w-[calc(100vw-80px)] md:max-w-none justify-end">
         {/* Public navigation */}
         <NavButton
           to="/prompts"
@@ -165,7 +165,7 @@ function FixedNav() {
       </div>
 
       {/* Theme toggle in bottom-left */}
-      <div className="fixed bottom-4 left-4 z-50">
+      <div className="fixed bottom-4 left-4 z-[9999]">
         <ThemeToggle />
       </div>
 

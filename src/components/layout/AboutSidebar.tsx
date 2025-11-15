@@ -120,7 +120,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998] transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       />
@@ -128,7 +128,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
       {/* Sidebar */}
       <div
         ref={sidebarRef}
-        className={`fixed left-0 top-0 h-full w-full sm:w-[85%] md:w-[480px] bg-background border-r border-border shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed left-0 top-0 h-full w-full sm:w-[85%] md:w-[480px] bg-background border-r border-border shadow-2xl z-[9999] transition-transform duration-300 ease-in-out overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

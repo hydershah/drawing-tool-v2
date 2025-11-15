@@ -24,7 +24,7 @@ export function BookInfo() {
   }, []);
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-[9999]">
       {/* Popup */}
       {isOpen && (
         <div className="absolute bottom-14 right-0 w-64 bg-card border border-border rounded-lg p-4 shadow-xl">

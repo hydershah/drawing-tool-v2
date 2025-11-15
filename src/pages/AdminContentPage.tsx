@@ -22,7 +22,33 @@ interface SiteContent {
   aboutBrushEngine: string;
   aboutHowItWorks: string;
   aboutDesignPhilosophy: string;
+  aboutSidebarContent?: string; // Combined sidebar content
 }
+
+const DEFAULT_SIDEBAR_CONTENT = `=== About the Project ===
+Prompt-Brush 2.0 is a web-based drawing application featuring a realistic brush drawing tool that creates organic, variable-thickness strokes mimicking real brush behavior with black ink on a warm beige artboard background.
+
+=== Features ===
+500x700px portrait canvas with warm beige (#f4efe9) background
+Speed-sensitive brush with natural texture and grain
+Email functionality to send artwork as PNG attachments
+Community gallery with admin approval system
+User submission system for prompt-based artwork
+Dark/light mode toggle
+Minimalistic icon-based navigation
+
+=== Brush Engine ===
+The brush engine uses advanced techniques including speed-sensitive line weight, multiple overlapping circles for natural texture, and random micro-variations to create authentic brush grain with darker cores and lighter semi-transparent edges.
+
+=== How It Works ===
+Browse available prompts from the gallery
+Select a prompt that inspires you
+Create your artwork using the brush tool
+Submit your work for admin approval
+Once approved, your artwork appears in the public gallery
+
+=== Design Philosophy ===
+Prompt-Brush 2.0 embraces a minimalistic design with a focus on the creative process. The interface stays out of your way, letting you concentrate on your art while providing all the tools you need for expressive brush work.`;
 
 const DEFAULT_CONTENT: SiteContent = {
   bookTitle: 'Prompt-Brush 1.0',
@@ -46,9 +72,49 @@ Create your artwork using the brush tool
 Submit your work for admin approval
 Once approved, your artwork appears in the public gallery`,
   aboutDesignPhilosophy: 'Prompt-Brush 2.0 embraces a minimalistic design with a focus on the creative process. The interface stays out of your way, letting you concentrate on your art while providing all the tools you need for expressive brush work.',
+  aboutSidebarContent: DEFAULT_SIDEBAR_CONTENT,
 };
 
 const STORAGE_KEY = 'site_content';
+
+// Parse combined sidebar content into individual fields
+function parseSidebarContent(content: string): {
+  aboutProjectDescription: string;
+  aboutFeatures: string;
+  aboutBrushEngine: string;
+  aboutHowItWorks: string;
+  aboutDesignPhilosophy: string;
+} {
+  const sections = {
+    aboutProjectDescription: '',
+    aboutFeatures: '',
+    aboutBrushEngine: '',
+    aboutHowItWorks: '',
+    aboutDesignPhilosophy: '',
+  };
+
+  const sectionRegex = /===\s*(.+?)\s*===\n([\s\S]*?)(?=\n===|$)/g;
+  let match;
+
+  while ((match = sectionRegex.exec(content)) !== null) {
+    const sectionName = match[1].trim();
+    const sectionContent = match[2].trim();
+
+    if (sectionName === 'About the Project') {
+      sections.aboutProjectDescription = sectionContent;
+    } else if (sectionName === 'Features') {
+      sections.aboutFeatures = sectionContent;
+    } else if (sectionName === 'Brush Engine') {
+      sections.aboutBrushEngine = sectionContent;
+    } else if (sectionName === 'How It Works') {
+      sections.aboutHowItWorks = sectionContent;
+    } else if (sectionName === 'Design Philosophy') {
+      sections.aboutDesignPhilosophy = sectionContent;
+    }
+  }
+
+  return sections;
+}
 
 function loadContent(): SiteContent {
   try {
@@ -64,6 +130,11 @@ function loadContent(): SiteContent {
 
 function saveContent(content: SiteContent): void {
   try {
+    // Parse the combined sidebar content into individual fields for backward compatibility
+    if (content.aboutSidebarContent) {
+      const parsed = parseSidebarContent(content.aboutSidebarContent);
+      content = { ...content, ...parsed };
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
   } catch (error) {
     console.error('Error saving site content:', error);
@@ -291,77 +362,16 @@ export function AdminContentPage() {
                 className="text-[12px] text-muted-foreground"
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
-                About the Project
+                All Sidebar Content
               </label>
+              <div className="text-[11px] text-muted-foreground mb-2" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                Use section headers like: === About the Project ===
+              </div>
               <Textarea
-                value={content.aboutProjectDescription}
-                onChange={(e) => handleChange('aboutProjectDescription', e.target.value)}
-                placeholder="Description of the project"
-                className="text-[13px] min-h-[100px]"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="text-[12px] text-muted-foreground"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              >
-                Features (one per line)
-              </label>
-              <Textarea
-                value={content.aboutFeatures}
-                onChange={(e) => handleChange('aboutFeatures', e.target.value)}
-                placeholder="List features, one per line"
-                className="text-[13px] min-h-[120px]"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="text-[12px] text-muted-foreground"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              >
-                Brush Engine
-              </label>
-              <Textarea
-                value={content.aboutBrushEngine}
-                onChange={(e) => handleChange('aboutBrushEngine', e.target.value)}
-                placeholder="Description of the brush engine"
-                className="text-[13px] min-h-[100px]"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="text-[12px] text-muted-foreground"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              >
-                How It Works (one step per line)
-              </label>
-              <Textarea
-                value={content.aboutHowItWorks}
-                onChange={(e) => handleChange('aboutHowItWorks', e.target.value)}
-                placeholder="List steps, one per line"
-                className="text-[13px] min-h-[120px]"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="text-[12px] text-muted-foreground"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
-              >
-                Design Philosophy
-              </label>
-              <Textarea
-                value={content.aboutDesignPhilosophy}
-                onChange={(e) => handleChange('aboutDesignPhilosophy', e.target.value)}
-                placeholder="Design philosophy description"
-                className="text-[13px] min-h-[100px]"
+                value={content.aboutSidebarContent || DEFAULT_SIDEBAR_CONTENT}
+                onChange={(e) => handleChange('aboutSidebarContent', e.target.value)}
+                placeholder="Enter all sidebar content with section headers (=== Section Name ===)"
+                className="text-[13px] min-h-[500px] font-mono"
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               />
             </div>

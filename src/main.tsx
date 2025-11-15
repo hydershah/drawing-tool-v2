@@ -8,6 +8,61 @@ import { App } from './App';
 import { initializeDatabase } from './services/database';
 import './styles/globals.css';
 
+// Update favicon based on color scheme
+function updateFavicon() {
+  const favicon = document.getElementById('favicon') as HTMLLinkElement;
+  if (!favicon) {
+    console.warn('Favicon element not found');
+    return;
+  }
+
+  // Check if dark mode is active (next-themes adds 'dark' class to html element)
+  const isDark = document.documentElement.classList.contains('dark');
+  const newHref = isDark ? '/favicon-promptbrush-dark-mode.png' : '/favicon-promptbrush.png';
+
+  // Force favicon update by removing and re-adding
+  favicon.href = newHref + '?v=' + Date.now();
+  console.log('Favicon updated:', { isDark, href: newHref });
+}
+
+// Wait for DOM to be ready before updating favicon
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    updateFavicon();
+
+    // Watch for theme changes by observing class changes on html element
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          updateFavicon();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  });
+} else {
+  // DOM is already ready
+  updateFavicon();
+
+  // Watch for theme changes by observing class changes on html element
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'class') {
+        updateFavicon();
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class']
+  });
+}
+
 // Initialize database before rendering app
 initializeDatabase()
   .then(() => {
