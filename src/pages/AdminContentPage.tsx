@@ -85,6 +85,9 @@ function parseSidebarContent(content: string): {
   aboutHowItWorks: string;
   aboutDesignPhilosophy: string;
 } {
+  console.log('Parsing sidebar content, length:', content.length);
+  console.log('Content preview:', content.substring(0, 200));
+
   const sections = {
     aboutProjectDescription: '',
     aboutFeatures: '',
@@ -95,10 +98,13 @@ function parseSidebarContent(content: string): {
 
   const sectionRegex = /===\s*(.+?)\s*===\n([\s\S]*?)(?=\n===|$)/g;
   let match;
+  let matchCount = 0;
 
   while ((match = sectionRegex.exec(content)) !== null) {
+    matchCount++;
     const sectionName = match[1].trim();
     const sectionContent = match[2].trim();
+    console.log(`Match ${matchCount}: Section "${sectionName}", content length: ${sectionContent.length}`);
 
     if (sectionName === 'About the Project') {
       sections.aboutProjectDescription = sectionContent;
@@ -112,6 +118,9 @@ function parseSidebarContent(content: string): {
       sections.aboutDesignPhilosophy = sectionContent;
     }
   }
+
+  console.log(`Total matches found: ${matchCount}`);
+  console.log('Parsed sections:', sections);
 
   return sections;
 }
@@ -159,8 +168,13 @@ export function AdminContentPage() {
       setHasChanges(false);
       toast.success('Content saved successfully!');
 
+      // Debug logging
+      console.log('Saved content:', content);
+      console.log('localStorage after save:', localStorage.getItem(STORAGE_KEY));
+
       // Dispatch custom event to notify BookInfo component to update
       window.dispatchEvent(new CustomEvent('siteContentUpdated'));
+      console.log('Dispatched siteContentUpdated event');
     } catch (error) {
       toast.error('Failed to save content');
       console.error(error);

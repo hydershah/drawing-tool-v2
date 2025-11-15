@@ -37,6 +37,11 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
       throw new Error(error.error || `API error: ${response.status}`);
     }
 
+    // Handle 204 No Content responses (DELETE operations)
+    if (response.status === 204) {
+      return null as T;
+    }
+
     return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);

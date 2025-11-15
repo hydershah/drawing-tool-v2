@@ -107,7 +107,10 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
   // Listen for content updates
   useEffect(() => {
     function handleContentUpdate() {
-      setContent(loadAboutContent());
+      console.log('AboutSidebar received siteContentUpdated event');
+      const newContent = loadAboutContent();
+      console.log('Loaded new content:', newContent);
+      setContent(newContent);
     }
 
     window.addEventListener('siteContentUpdated', handleContentUpdate);

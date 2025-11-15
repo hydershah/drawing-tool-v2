@@ -14,7 +14,10 @@ export function BookInfo() {
   // Listen for content updates
   useEffect(() => {
     const handleContentUpdate = () => {
-      setContent(getSiteContent());
+      console.log('BookInfo received siteContentUpdated event');
+      const newContent = getSiteContent();
+      console.log('Loaded new content:', newContent);
+      setContent(newContent);
     };
 
     window.addEventListener('siteContentUpdated', handleContentUpdate);
