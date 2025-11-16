@@ -151,3 +151,74 @@
 .dark .dark-logo-fix-dark {
   display: block !important;
 }
+
+/* Sidebar Content Rich Text Styles */
+.sidebar-content h1 {
+  @apply text-xl font-normal mb-4 text-foreground;
+}
+
+.sidebar-content h2 {
+  @apply text-base font-normal mb-4 text-foreground;
+}
+
+.sidebar-content h3 {
+  @apply text-sm font-normal mb-3 text-foreground;
+}
+
+.sidebar-content p {
+  @apply text-muted-foreground leading-relaxed mb-6;
+}
+
+.sidebar-content ul {
+  @apply space-y-2 text-muted-foreground mb-6 list-none;
+}
+
+.sidebar-content ul li {
+  @apply flex items-start;
+}
+
+.sidebar-content ul li::before {
+  content: "•";
+  @apply mr-2;
+}
+
+.sidebar-content ol {
+  @apply space-y-2 text-muted-foreground mb-6 list-decimal list-inside;
+}
+
+.sidebar-content ol li {
+  @apply text-muted-foreground;
+}
+
+.sidebar-content a {
+  @apply text-foreground underline hover:text-primary transition-colors;
+}
+
+.sidebar-content strong {
+  @apply font-semibold text-foreground;
+}
+
+.sidebar-content em {
+  @apply italic;
+}
+
+.sidebar-content u {
+  @apply underline;
+}
+
+/* Quill Editor Styles Override for Admin Panel */
+.ql-toolbar.ql-snow {
+  @apply border-border bg-muted/30;
+}
+
+.ql-container.ql-snow {
+  @apply border-border bg-background;
+}
+
+.ql-editor {
+  @apply min-h-[400px] text-foreground;
+}
+
+.ql-editor.ql-blank::before {
+  @apply text-muted-foreground italic;
+}
