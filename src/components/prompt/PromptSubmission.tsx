@@ -197,7 +197,7 @@ export function PromptSubmission() {
                   onChange={handlePromptChange}
                   placeholder="What should I draw for you today?"
                   className="bg-transparent border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 px-0 flex-1 text-lg md:text-xl h-7 md:h-8"
-                  style={{ fontFamily: 'Martina Plantijn, serif' }}
+                  style={{ fontFamily: 'Delcan Mono, monospace' }}
                   autoFocus
                   disabled={isMorphing}
                   maxLength={MAX_PROMPT_LENGTH}
@@ -282,7 +282,7 @@ export function PromptSubmission() {
                   onChange={handleEmailChange}
                   placeholder="Add your email here"
                   className="bg-transparent border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 px-0 flex-1 text-lg md:text-xl h-7 md:h-8"
-                  style={{ fontFamily: 'Martina Plantijn, serif' }}
+                  style={{ fontFamily: 'Delcan Mono, monospace' }}
                   autoFocus
                   disabled={isSubmitting}
                   maxLength={254}

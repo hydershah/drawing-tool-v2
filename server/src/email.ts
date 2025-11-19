@@ -47,16 +47,25 @@ export async function sendArtworkSubmissionEmail(
     const sanitizedPrompt = sanitizePrompt(prompt);
     const timestamp = new Date().toISOString();
 
-    const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2 style="color: #333;">Thank You for Your Submission!</h2>
-  <p style="color: #666; line-height: 1.6;">Hi <strong>${artistName.trim()}</strong>,</p>
-  <p>Thank you for submitting your artwork to <strong>Prompt-Brush 1.0</strong>!</p>
-  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
-    <p style="margin: 0; color: #333;"><strong>Drawing Prompt:</strong></p>
-    <p style="margin: 8px 0 0 0; color: #666; font-style: italic;">"${prompt.trim()}"</p>
+    const emailHtml = `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="color: #1a1a1a; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; line-height: 1.3;">Thank You for Your Submission</h1>
   </div>
-  <p>We've attached your artwork for your records. You'll receive another email once it's approved!</p>
-  <p style="color: #999; font-size: 12px; margin-top: 40px;">- The Prompt-Brush Team</p>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 0 0 16px 0;">Hi <strong style="color: #1a1a1a;">${artistName.trim()}</strong>,</p>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 0 0 24px 0;">Thank you for submitting your artwork to <strong>Prompt-Brush 1.0</strong>. We've received your submission and it's now pending review.</p>
+
+  <div style="background: #f8f8f8; padding: 20px; border-radius: 6px; margin: 24px 0; border-left: 3px solid #1a1a1a;">
+    <p style="margin: 0 0 8px 0; color: #1a1a1a; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Drawing Prompt</p>
+    <p style="margin: 0; color: #4a4a4a; font-size: 16px; line-height: 1.6; font-style: italic;">"${prompt.trim()}"</p>
+  </div>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 24px 0;">We've attached your artwork to this email for your records. You'll receive a notification once your artwork has been approved and published to the gallery.</p>
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5;">
+    <p style="color: #999; font-size: 14px; margin: 0; line-height: 1.5;">Best regards,<br><strong style="color: #666;">The Prompt-Brush Team</strong></p>
+  </div>
 </div>`;
 
     // Extract base64 data (remove "data:image/png;base64," prefix)
@@ -103,19 +112,28 @@ export async function sendPromptUsedEmail(
       return { success: false, error: 'Invalid email address' };
     }
 
-    const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2 style="color: #333;">Your Prompt Has Been Used! 🎨</h2>
-  <p style="color: #666; line-height: 1.6;">Great news! An artist has created artwork based on your prompt.</p>
-  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
-    <p style="margin: 0; color: #333;"><strong>Your Prompt:</strong></p>
-    <p style="margin: 8px 0 0 0; color: #666; font-style: italic;">"${prompt.trim()}"</p>
+    const emailHtml = `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="color: #1a1a1a; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; line-height: 1.3;">Your Prompt Has Been Used</h1>
   </div>
-  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
-    <p style="margin: 0; color: #333;"><strong>Artist:</strong></p>
-    <p style="margin: 8px 0 0 0; color: #666;">${artistName.trim()}</p>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 0 0 24px 0;">An artist has created artwork based on your prompt. The submission is currently pending review.</p>
+
+  <div style="background: #f8f8f8; padding: 20px; border-radius: 6px; margin: 24px 0; border-left: 3px solid #1a1a1a;">
+    <p style="margin: 0 0 8px 0; color: #1a1a1a; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Your Prompt</p>
+    <p style="margin: 0; color: #4a4a4a; font-size: 16px; line-height: 1.6; font-style: italic;">"${prompt.trim()}"</p>
   </div>
-  <p>The artwork is currently pending review. Once approved, it will appear in the gallery!</p>
-  <p style="color: #999; font-size: 12px; margin-top: 40px;">- The Prompt-Brush Team</p>
+
+  <div style="background: #f8f8f8; padding: 20px; border-radius: 6px; margin: 24px 0;">
+    <p style="margin: 0 0 8px 0; color: #1a1a1a; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Artist</p>
+    <p style="margin: 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">${artistName.trim()}</p>
+  </div>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 24px 0;">Once the artwork is approved, it will be published to the gallery and you'll receive another notification.</p>
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5;">
+    <p style="color: #999; font-size: 14px; margin: 0; line-height: 1.5;">Best regards,<br><strong style="color: #666;">The Prompt-Brush Team</strong></p>
+  </div>
 </div>`;
 
     const { data, error } = await resend.emails.send({
@@ -153,16 +171,23 @@ export async function sendArtworkApprovedEmail(
       return { success: false, error: 'Invalid email address' };
     }
 
-    const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2 style="color: #333;">Your Artwork is Now Live! 🎉</h2>
-  <p style="color: #666; line-height: 1.6;">Hi <strong>${artistName.trim()}</strong>,</p>
-  <p>Congratulations! Your artwork has been approved and is now live in the gallery.</p>
-  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
-    <p style="margin: 0; color: #333;"><strong>Drawing Prompt:</strong></p>
-    <p style="margin: 8px 0 0 0; color: #666; font-style: italic;">"${prompt.trim()}"</p>
+    const emailHtml = `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="color: #1a1a1a; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; line-height: 1.3;">Your Artwork is Now Live</h1>
   </div>
-  <p>Thank you for contributing to <strong>Prompt-Brush 1.0</strong>!</p>
-  <p style="color: #999; font-size: 12px; margin-top: 40px;">- The Prompt-Brush Team</p>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 0 0 16px 0;">Hi <strong style="color: #1a1a1a;">${artistName.trim()}</strong>,</p>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 0 0 24px 0;">Your artwork has been approved and is now published in the gallery. Thank you for contributing to <strong>Prompt-Brush 1.0</strong>.</p>
+
+  <div style="background: #f8f8f8; padding: 20px; border-radius: 6px; margin: 24px 0; border-left: 3px solid #1a1a1a;">
+    <p style="margin: 0 0 8px 0; color: #1a1a1a; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Drawing Prompt</p>
+    <p style="margin: 0; color: #4a4a4a; font-size: 16px; line-height: 1.6; font-style: italic;">"${prompt.trim()}"</p>
+  </div>
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5;">
+    <p style="color: #999; font-size: 14px; margin: 0; line-height: 1.5;">Best regards,<br><strong style="color: #666;">The Prompt-Brush Team</strong></p>
+  </div>
 </div>`;
 
     const { data, error } = await resend.emails.send({
@@ -199,15 +224,23 @@ export async function sendPromptSubmissionEmail(
       return { success: false, error: 'Invalid email address' };
     }
 
-    const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2 style="color: #333;">Thank You for Your Prompt!</h2>
-  <p style="color: #666; line-height: 1.6;">Thank you for submitting your prompt to <strong>Prompt-Brush 1.0</strong>!</p>
-  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
-    <p style="margin: 0; color: #333;"><strong>Your Prompt:</strong></p>
-    <p style="margin: 8px 0 0 0; color: #666; font-style: italic;">"${prompt.trim()}"</p>
+    const emailHtml = `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="color: #1a1a1a; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; line-height: 1.3;">Thank You for Your Prompt</h1>
   </div>
-  <p>Your prompt has been successfully submitted! When an artist draws your prompt, you'll receive an email notification.</p>
-  <p style="color: #999; font-size: 12px; margin-top: 40px;">- The Prompt-Brush Team</p>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 0 0 24px 0;">Thank you for submitting your prompt to <strong>Prompt-Brush 1.0</strong>. Your prompt has been successfully added to the system.</p>
+
+  <div style="background: #f8f8f8; padding: 20px; border-radius: 6px; margin: 24px 0; border-left: 3px solid #1a1a1a;">
+    <p style="margin: 0 0 8px 0; color: #1a1a1a; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Your Prompt</p>
+    <p style="margin: 0; color: #4a4a4a; font-size: 16px; line-height: 1.6; font-style: italic;">"${prompt.trim()}"</p>
+  </div>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 24px 0;">When an artist creates artwork based on your prompt, you'll receive an email notification.</p>
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5;">
+    <p style="color: #999; font-size: 14px; margin: 0; line-height: 1.5;">Best regards,<br><strong style="color: #666;">The Prompt-Brush Team</strong></p>
+  </div>
 </div>`;
 
     const { data, error } = await resend.emails.send({
@@ -245,19 +278,28 @@ export async function sendPromptArtworkApprovedEmail(
       return { success: false, error: 'Invalid email address' };
     }
 
-    const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-  <h2 style="color: #333;">Your Prompt is Now Live in the Gallery! 🎉</h2>
-  <p style="color: #666; line-height: 1.6;">Great news! An artwork based on your prompt has been approved and is now live in the gallery.</p>
-  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
-    <p style="margin: 0; color: #333;"><strong>Your Prompt:</strong></p>
-    <p style="margin: 8px 0 0 0; color: #666; font-style: italic;">"${prompt.trim()}"</p>
+    const emailHtml = `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="color: #1a1a1a; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; line-height: 1.3;">Your Prompt is Now Live in the Gallery</h1>
   </div>
-  <div style="background: #f4f4f4; padding: 16px; border-radius: 8px; margin: 20px 0;">
-    <p style="margin: 0; color: #333;"><strong>Artist:</strong></p>
-    <p style="margin: 8px 0 0 0; color: #666;">${artistName.trim()}</p>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 0 0 24px 0;">An artwork based on your prompt has been approved and is now published in the gallery.</p>
+
+  <div style="background: #f8f8f8; padding: 20px; border-radius: 6px; margin: 24px 0; border-left: 3px solid #1a1a1a;">
+    <p style="margin: 0 0 8px 0; color: #1a1a1a; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Your Prompt</p>
+    <p style="margin: 0; color: #4a4a4a; font-size: 16px; line-height: 1.6; font-style: italic;">"${prompt.trim()}"</p>
   </div>
-  <p>Thank you for contributing to <strong>Prompt-Brush 1.0</strong>!</p>
-  <p style="color: #999; font-size: 12px; margin-top: 40px;">- The Prompt-Brush Team</p>
+
+  <div style="background: #f8f8f8; padding: 20px; border-radius: 6px; margin: 24px 0;">
+    <p style="margin: 0 0 8px 0; color: #1a1a1a; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Artist</p>
+    <p style="margin: 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">${artistName.trim()}</p>
+  </div>
+
+  <p style="color: #4a4a4a; line-height: 1.7; font-size: 16px; margin: 24px 0;">Thank you for contributing to <strong>Prompt-Brush 1.0</strong>.</p>
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5;">
+    <p style="color: #999; font-size: 14px; margin: 0; line-height: 1.5;">Best regards,<br><strong style="color: #666;">The Prompt-Brush Team</strong></p>
+  </div>
 </div>`;
 
     const { data, error } = await resend.emails.send({

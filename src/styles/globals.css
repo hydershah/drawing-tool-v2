@@ -11,6 +11,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Delcan Mono';
+  src: url('/fonts/DelcanMono2.0-Regular2.1.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* CSS Variables for Light Mode */
 @layer base {
   :root {

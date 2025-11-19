@@ -23,8 +23,6 @@ import { AdminApprovalsPage } from './pages/AdminApprovalsPage';
 import { AdminPromptsPage } from './pages/AdminPromptsPage';
 import { AdminContentPage } from './pages/AdminContentPage';
 import {
-  FileText,
-  Grid3x3,
   Palette,
   LogOut,
   List,
@@ -115,13 +113,38 @@ function FixedNav() {
         <NavButton
           to="/prompts"
           isActive={location.pathname === '/prompts'}
-          icon={<FileText className="w-5 h-5 md:w-8 md:h-8" />}
+          icon={
+            <svg className="w-6 h-6 md:w-10 md:h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66.39 67.63" fill="currentColor">
+              <rect x="20.25" y="14.09" width="30.88" height="1"/>
+              <rect x="20.25" y="23.71" width="30.88" height="1"/>
+              <rect x="20.25" y="33.34" width="30.88" height="1"/>
+              <rect x="20.25" y="42.96" width="30.88" height="1"/>
+              <rect x="20.25" y="52.59" width="30.88" height="1"/>
+              <path d="M15.34,15.59h-.7c-.55,0-1-.45-1-1s.45-1,1-1h.7c.55,0,1,.45,1,1s-.45,1-1,1Z"/>
+              <path d="M15.34,25.21h-.7c-.55,0-1-.45-1-1s.45-1,1-1h.7c.55,0,1,.45,1,1s-.45,1-1,1Z"/>
+              <path d="M15.34,34.84h-.7c-.55,0-1-.45-1-1s.45-1,1-1h.7c.55,0,1,.45,1,1s-.45,1-1,1Z"/>
+              <path d="M15.34,44.46h-.7c-.55,0-1-.45-1-1s.45-1,1-1h.7c.55,0,1,.45,1,1s-.45,1-1,1Z"/>
+              <path d="M15.34,54.09h-.7c-.55,0-1-.45-1-1s.45-1,1-1h.7c.55,0,1,.45,1,1s-.45,1-1,1Z"/>
+            </svg>
+          }
           tooltip="Browse Prompts"
         />
         <NavButton
           to="/gallery"
           isActive={location.pathname === '/gallery'}
-          icon={<Grid3x3 className="w-5 h-5 md:w-8 md:h-8" />}
+          icon={
+            <svg className="w-6 h-6 md:w-10 md:h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66.39 67.63" fill="currentColor">
+              <rect x="15.95" y="13.09" width="8.52" height="11.22"/>
+              <rect x="28.17" y="13.09" width="8.52" height="11.22"/>
+              <rect x="40.38" y="13.09" width="8.52" height="11.22"/>
+              <rect x="15.95" y="27.9" width="8.52" height="11.22"/>
+              <rect x="28.17" y="27.9" width="8.52" height="11.22"/>
+              <rect x="40.38" y="27.9" width="8.52" height="11.22"/>
+              <rect x="15.95" y="42.7" width="8.52" height="11.22"/>
+              <rect x="28.17" y="42.7" width="8.52" height="11.22"/>
+              <rect x="40.38" y="42.7" width="8.52" height="11.22"/>
+            </svg>
+          }
           tooltip="Gallery"
         />
 
@@ -131,32 +154,32 @@ function FixedNav() {
             <NavButton
               to="/admin/prompts"
               isActive={location.pathname === '/admin/prompts'}
-              icon={<List className="w-5 h-5 md:w-8 md:h-8" />}
+              icon={<List className="w-6 h-6 md:w-10 md:h-10" />}
               tooltip="Manage Prompts"
             />
             <NavButton
               to="/admin/approvals"
               isActive={location.pathname === '/admin/approvals'}
-              icon={<CheckSquare className="w-5 h-5 md:w-8 md:h-8" />}
+              icon={<CheckSquare className="w-6 h-6 md:w-10 md:h-10" />}
               tooltip="Approve Artworks"
             />
             <NavButton
               to="/admin/draw"
               isActive={location.pathname === '/admin/draw'}
-              icon={<Palette className="w-5 h-5 md:w-8 md:h-8" />}
+              icon={<Palette className="w-6 h-6 md:w-10 md:h-10" />}
               tooltip="Draw"
             />
             <NavButton
               to="/admin/content"
               isActive={location.pathname === '/admin/content'}
-              icon={<Settings className="w-5 h-5 md:w-8 md:h-8" />}
+              icon={<Settings className="w-6 h-6 md:w-10 md:h-10" />}
               tooltip="Site Content"
             />
             <NavButton
               to="/"
               isActive={false}
               onClick={logout}
-              icon={<LogOut className="w-5 h-5 md:w-8 md:h-8" />}
+              icon={<LogOut className="w-6 h-6 md:w-10 md:h-10" />}
               tooltip="Logout"
               variant="destructive"
             />
