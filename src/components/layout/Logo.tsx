@@ -34,7 +34,7 @@ export function Logo({ onClick }: LogoProps) {
 
   return (
     <div
-      className="fixed top-4 left-4 w-14 h-14 cursor-pointer relative z-[9999]"
+      className="fixed top-4 left-4 w-20 h-20 cursor-pointer relative z-[9999]"
       onClick={onClick}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}

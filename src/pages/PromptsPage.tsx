@@ -44,7 +44,7 @@ function PromptItem({
               {formattedPromptNumber}
             </div>
             <div
-              className="text-muted-foreground text-[11px]"
+              className="text-muted-foreground text-[13px]"
               style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             >
               {formattedDate}
@@ -53,7 +53,7 @@ function PromptItem({
 
           {/* Prompt Text */}
           <div
-            className="text-foreground text-[14px] leading-relaxed uppercase tracking-wider font-medium"
+            className="text-foreground text-[16px] leading-relaxed uppercase tracking-wider font-medium"
             style={{ fontFamily: 'Delcan Mono, monospace' }}
           >
             {prompt.prompt}
@@ -62,14 +62,14 @@ function PromptItem({
           {/* Status/Button */}
           <div className="flex items-center justify-center">
             {prompt.status === 'completed' ? (
-              <div className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase whitespace-nowrap" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+              <div className="text-muted-foreground text-[13px] font-medium tracking-wider uppercase whitespace-nowrap" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                 COMPLETED
               </div>
             ) : (
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[11px] h-9 px-4 w-full bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-2 border-white rounded-none"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-4 w-full bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-[3px] border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
@@ -81,46 +81,44 @@ function PromptItem({
 
         {/* Desktop Layout (Horizontal) */}
         <div className="hidden md:flex items-center gap-8">
-          {/* Left: Prompt Text and Date */}
+          {/* Left: Prompt Text */}
           <div className="flex-1 min-w-0 py-2">
             <div
-              className="text-foreground text-[15px] leading-relaxed truncate mb-1.5 uppercase tracking-wider font-medium"
+              className="text-foreground text-[18px] leading-relaxed truncate uppercase tracking-wider font-medium"
               style={{ fontFamily: 'Delcan Mono, monospace' }}
               title={prompt.prompt}
             >
               {prompt.prompt}
             </div>
+          </div>
+
+          {/* Center: Prompt Number and Date */}
+          <div className="flex items-center gap-8 flex-shrink-0">
             <div
-              className="text-muted-foreground text-[11px]"
+              className="text-muted-foreground text-[13px] tracking-wide font-medium"
+              style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+            >
+              {formattedPromptNumber}
+            </div>
+            <div
+              className="text-muted-foreground text-[13px]"
               style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             >
               {formattedDate}
             </div>
           </div>
 
-          {/* Center: Prompt Number */}
-          <div
-            className="text-muted-foreground text-[14px] tracking-wide font-medium text-center flex-shrink-0"
-            style={{
-              fontFamily: 'FK Grotesk Mono, monospace',
-              width: '120px',
-              marginRight: '20%',
-            }}
-          >
-            {formattedPromptNumber}
-          </div>
-
           {/* Right: Status Badge and Draw Button */}
           <div className="flex items-center gap-3 flex-shrink-0 justify-end" style={{ width: '320px' }}>
             {prompt.status === 'completed' ? (
-              <div className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase whitespace-nowrap" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+              <div className="text-muted-foreground text-[13px] font-medium tracking-wider uppercase whitespace-nowrap" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                 COMPLETED
               </div>
             ) : (
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[11px] h-9 px-5 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-2 border-white rounded-none"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-5 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-[3px] border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
@@ -223,7 +221,7 @@ export function PromptsPage() {
       <div className="space-y-6 md:space-y-8 mt-16 md:mt-24 px-4 md:px-8">
         <div className="space-y-4 md:space-y-5">
         {/* Search Bar */}
-        <div className="relative max-w-2xl w-full mx-auto">
+        <div className="relative max-w-2xl w-full">
           <label htmlFor="prompt-search" className="sr-only">
             Search prompts
           </label>
@@ -236,7 +234,7 @@ export function PromptsPage() {
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="Search prompts..."
-            className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-10 md:pl-11 pr-10 md:pr-11 rounded-[24px] text-[13px] md:text-[14px] h-10 md:h-11 focus:border-primary focus:ring-ring shadow-sm transition-all"
+            className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-10 md:pl-11 pr-10 md:pr-11 rounded-[24px] text-[13px] h-10 md:h-11 focus:border-primary focus:ring-ring shadow-sm transition-all"
             style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             autoComplete="off"
             aria-label="Search prompts"
@@ -270,7 +268,7 @@ export function PromptsPage() {
       {/* Results */}
       {filteredPrompts.length === 0 ? (
         <div
-          className="text-muted-foreground text-center py-16 text-[14px]"
+          className="text-muted-foreground text-center py-16 text-[13px]"
           style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
         >
           {searchQuery ? (
