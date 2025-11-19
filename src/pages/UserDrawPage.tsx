@@ -239,7 +239,7 @@ export function UserDrawPage() {
         <div className="w-full lg:w-96 lg:flex-shrink-0 space-y-4">
           {/* Drawing Prompt Display */}
           <div className="bg-card border border-border rounded-lg p-4 mt-8 text-left">
-            <div className="text-muted-foreground text-xs mb-2" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            <div className="text-muted-foreground text-xs mb-2 uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               Drawing Prompt:
             </div>
             <div className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
@@ -249,7 +249,7 @@ export function UserDrawPage() {
 
           {/* Artist Name */}
           <div className="space-y-2">
-            <label htmlFor="artist-name" className="text-muted-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            <label htmlFor="artist-name" className="text-muted-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               Your Name
             </label>
             <Input
@@ -258,7 +258,7 @@ export function UserDrawPage() {
               onChange={handleArtistNameChange}
               placeholder="Artist name"
               className="bg-card border-border text-foreground placeholder:text-muted-foreground h-10 transition-all duration-200 hover:border-primary focus:border-primary"
-              style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              style={{ fontFamily: 'Delcan Mono, monospace' }}
               maxLength={100}
               autoComplete="name"
               aria-invalid={!!nameError}
@@ -273,7 +273,7 @@ export function UserDrawPage() {
 
           {/* Artist Email */}
           <div className="space-y-2">
-            <label htmlFor="artist-email" className="text-muted-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            <label htmlFor="artist-email" className="text-muted-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               Your Email (optional)
             </label>
             <Input
@@ -283,7 +283,7 @@ export function UserDrawPage() {
               onChange={handleArtistEmailChange}
               placeholder="Add your email here"
               className="bg-card border-border text-foreground placeholder:text-muted-foreground h-10 transition-all duration-200 hover:border-primary focus:border-primary"
-              style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              style={{ fontFamily: 'Delcan Mono, monospace' }}
               maxLength={254}
               autoComplete="email"
               aria-invalid={!!emailError}
@@ -296,17 +296,17 @@ export function UserDrawPage() {
             )}
           </div>
 
-          <div className="border-t border-border my-5"></div>
+          <div className="border-t-2 border-border my-5"></div>
 
           {/* Brush Controls */}
           <div className="space-y-5">
             {/* Brush Size */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="brush-size" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="brush-size" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   Brush Size
                 </label>
-                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.size}px
                 </span>
               </div>
@@ -325,10 +325,10 @@ export function UserDrawPage() {
             {/* Ink Density */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="ink-density" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="ink-density" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   Ink Density
                 </label>
-                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.density}%
                 </span>
               </div>
@@ -347,10 +347,10 @@ export function UserDrawPage() {
             {/* Contrast */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="contrast" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="contrast" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   Contrast
                 </label>
-                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.contrast}%
                 </span>
               </div>
@@ -367,7 +367,7 @@ export function UserDrawPage() {
             </div>
           </div>
 
-          <div className="border-t border-border my-5"></div>
+          <div className="border-t-2 border-border my-5"></div>
 
           {/* Actions */}
           <div>

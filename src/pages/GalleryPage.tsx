@@ -85,7 +85,7 @@ function ArtworkCard({
 
       <div
         className="text-foreground text-sm mb-2 line-clamp-2"
-        style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+        style={{ fontFamily: 'Delcan Mono, monospace' }}
         title={artwork.promptText || 'No prompt'}
       >
         {artwork.promptText || `Prompt ${formatPromptNumber(artwork.promptNumber)}`}
@@ -93,7 +93,7 @@ function ArtworkCard({
 
       {artwork.artistName && (
         <div
-          className="flex items-center gap-2 text-muted-foreground mt-1"
+          className="flex items-center gap-2 text-muted-foreground mt-1 uppercase"
           style={{ fontSize: '9pt', fontFamily: 'FK Grotesk Mono, monospace' }}
         >
           <User className="w-3 h-3" aria-hidden="true" />
@@ -221,11 +221,6 @@ export function GalleryPage() {
         <div className="space-y-6">
         {/* Search Bar */}
         <div className="space-y-4">
-          <div className="text-foreground" role="status" aria-live="polite">
-            {filteredArtworks.length} {filteredArtworks.length === 1 ? 'artwork' : 'artworks'}
-            {searchQuery && ` matching "${searchQuery}"`}
-          </div>
-
           <div className="relative max-w-2xl w-full">
             <label htmlFor="gallery-search" className="sr-only">
               Search artworks

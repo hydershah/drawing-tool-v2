@@ -3,10 +3,10 @@
  */
 
 // Canvas configuration
-export const CANVAS_WIDTH = 500;
-export const CANVAS_HEIGHT = 700;
+export const CANVAS_WIDTH = 600;
+export const CANVAS_HEIGHT = 840;
 export const CANVAS_BACKGROUND = '#f4efe9'; // Warm beige
-export const EXPORT_SCALE = 8; // 8x scale = 4000×5600px output (13.3×18.6" at 300 DPI)
+export const EXPORT_SCALE = 8; // 8x scale = 4800×6720px output (16×22.4" at 300 DPI)
 export const EXPORT_BORDER_WIDTH = 20;
 
 // Brush settings defaults

@@ -175,7 +175,7 @@ export function AdminDrawPage() {
           {/* Prompt Selection */}
           <div className="space-y-2">
             <label
-              className="text-muted-foreground text-sm font-medium"
+              className="text-muted-foreground text-sm font-medium uppercase"
               style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             >
               Select Prompt (Optional)
@@ -194,7 +194,7 @@ export function AdminDrawPage() {
                 onFocus={() => setShowPromptDropdown(true)}
                 placeholder="Search for a prompt..."
                 className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-10 pr-20 h-10 transition-all duration-200 hover:border-primary focus:border-primary text-[13px]"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+                style={{ fontFamily: 'Delcan Mono, monospace' }}
               />
               {selectedPrompt && (
                 <Button
@@ -261,7 +261,7 @@ export function AdminDrawPage() {
           {/* Email Input */}
           <div className="space-y-2">
             <label
-              className="text-muted-foreground text-sm font-medium"
+              className="text-muted-foreground text-sm font-medium uppercase"
               style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
             >
               Email for Notification (Optional)
@@ -277,22 +277,22 @@ export function AdminDrawPage() {
                 onChange={(e) => setEmailInput(e.target.value)}
                 placeholder="user@example.com"
                 className="bg-card border-border text-foreground placeholder:text-muted-foreground pl-10 h-10 transition-all duration-200 hover:border-primary focus:border-primary"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+                style={{ fontFamily: 'Delcan Mono, monospace' }}
               />
             </div>
           </div>
 
-          <div className="border-t border-border my-5"></div>
+          <div className="border-t-2 border-border my-5"></div>
 
           {/* Brush Controls */}
           <div className="space-y-5">
             {/* Brush Size */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="brush-size" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="brush-size" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   Brush Size
                 </label>
-                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.size}px
                 </span>
               </div>
@@ -311,10 +311,10 @@ export function AdminDrawPage() {
             {/* Ink Density */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="ink-density" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="ink-density" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   Ink Density
                 </label>
-                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.density}%
                 </span>
               </div>
@@ -333,10 +333,10 @@ export function AdminDrawPage() {
             {/* Contrast */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="contrast" className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="contrast" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   Contrast
                 </label>
-                <span className="text-foreground text-sm" style={{ fontFamily: 'FK Grotesk Mono, monospace' }} aria-live="polite">
+                <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.contrast}%
                 </span>
               </div>
@@ -353,7 +353,7 @@ export function AdminDrawPage() {
             </div>
           </div>
 
-          <div className="border-t border-border my-5"></div>
+          <div className="border-t-2 border-border my-5"></div>
 
           {/* Actions */}
           <div>
