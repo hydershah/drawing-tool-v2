@@ -53,7 +53,7 @@ function PromptItem({
 
           {/* Prompt Text */}
           <div
-            className="text-foreground text-[16px] leading-relaxed uppercase tracking-wider font-medium"
+            className="text-foreground text-[18px] leading-relaxed tracking-wide font-medium"
             style={{ fontFamily: 'Delcan Mono, monospace' }}
           >
             {prompt.prompt}
@@ -69,7 +69,7 @@ function PromptItem({
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-4 w-full bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-[3px] border-white rounded-none"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-4 w-full bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase border-2 border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
@@ -80,11 +80,11 @@ function PromptItem({
         </div>
 
         {/* Desktop Layout (Horizontal) */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-baseline gap-8">
           {/* Left: Prompt Text */}
-          <div className="flex-1 min-w-0 py-2">
+          <div className="flex-1 min-w-0">
             <div
-              className="text-foreground text-[18px] leading-relaxed truncate uppercase tracking-wider font-medium"
+              className="text-foreground text-[20px] leading-relaxed truncate tracking-wide font-medium"
               style={{ fontFamily: 'Delcan Mono, monospace' }}
               title={prompt.prompt}
             >
@@ -93,7 +93,7 @@ function PromptItem({
           </div>
 
           {/* Center: Prompt Number and Date */}
-          <div className="flex items-center gap-8 flex-shrink-0">
+          <div className="flex items-baseline gap-12 flex-shrink-0">
             <div
               className="text-muted-foreground text-[13px] tracking-wide font-medium"
               style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
@@ -109,7 +109,7 @@ function PromptItem({
           </div>
 
           {/* Right: Status Badge and Draw Button */}
-          <div className="flex items-center gap-3 flex-shrink-0 justify-end" style={{ width: '320px' }}>
+          <div className="flex items-baseline gap-3 flex-shrink-0 justify-end" style={{ width: '320px' }}>
             {prompt.status === 'completed' ? (
               <div className="text-muted-foreground text-[13px] font-medium tracking-wider uppercase whitespace-nowrap" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                 COMPLETED
@@ -118,7 +118,7 @@ function PromptItem({
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-5 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-[3px] border-white rounded-none"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-5 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase border-2 border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
@@ -130,7 +130,7 @@ function PromptItem({
       </div>
       {!isLast && (
         <div className="px-4 md:px-8">
-          <Separator className="bg-border" />
+          <Separator className="bg-border h-[2px]" />
         </div>
       )}
     </div>

@@ -61,10 +61,10 @@ function NavButton({
 
   const className =
     variant === 'destructive'
-      ? 'text-red-500 hover:text-red-600 w-8 h-8 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent'
+      ? 'text-red-500 hover:text-red-600 w-10 h-10 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent'
       : isActive
-      ? 'text-foreground w-8 h-8 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent'
-      : 'text-muted-foreground hover:text-foreground w-8 h-8 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent';
+      ? 'text-foreground w-10 h-10 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent'
+      : 'text-muted-foreground hover:text-foreground w-10 h-10 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent';
 
   return (
     <Tooltip>
@@ -113,7 +113,7 @@ function FixedNav() {
           to="/prompts"
           isActive={location.pathname === '/prompts'}
           icon={
-            <svg className="w-8 h-8 md:w-12 md:h-12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66.39 67.63" fill="currentColor">
+            <svg className="w-10 h-10 md:w-12 md:h-12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66.39 67.63" fill="currentColor">
               <rect x="20.25" y="14.09" width="30.88" height="1"/>
               <rect x="20.25" y="23.71" width="30.88" height="1"/>
               <rect x="20.25" y="33.34" width="30.88" height="1"/>
@@ -132,7 +132,7 @@ function FixedNav() {
           to="/gallery"
           isActive={location.pathname === '/gallery'}
           icon={
-            <svg className="w-8 h-8 md:w-12 md:h-12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66.39 67.63" fill="currentColor">
+            <svg className="w-10 h-10 md:w-12 md:h-12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66.39 67.63" fill="currentColor">
               <rect x="15.95" y="13.09" width="8.52" height="11.22"/>
               <rect x="28.17" y="13.09" width="8.52" height="11.22"/>
               <rect x="40.38" y="13.09" width="8.52" height="11.22"/>
@@ -153,32 +153,32 @@ function FixedNav() {
             <NavButton
               to="/admin/prompts"
               isActive={location.pathname === '/admin/prompts'}
-              icon={<List className="w-8 h-8 md:w-12 md:h-12" />}
+              icon={<List className="w-10 h-10 md:w-12 md:h-12" />}
               tooltip="Manage Prompts"
             />
             <NavButton
               to="/admin/approvals"
               isActive={location.pathname === '/admin/approvals'}
-              icon={<CheckSquare className="w-8 h-8 md:w-12 md:h-12" />}
+              icon={<CheckSquare className="w-10 h-10 md:w-12 md:h-12" />}
               tooltip="Approve Artworks"
             />
             <NavButton
               to="/admin/draw"
               isActive={location.pathname === '/admin/draw'}
-              icon={<Palette className="w-8 h-8 md:w-12 md:h-12" />}
+              icon={<Palette className="w-10 h-10 md:w-12 md:h-12" />}
               tooltip="Draw"
             />
             <NavButton
               to="/admin/content"
               isActive={location.pathname === '/admin/content'}
-              icon={<Settings className="w-8 h-8 md:w-12 md:h-12" />}
+              icon={<Settings className="w-10 h-10 md:w-12 md:h-12" />}
               tooltip="Site Content"
             />
             <NavButton
               to="/"
               isActive={false}
               onClick={logout}
-              icon={<LogOut className="w-8 h-8 md:w-12 md:h-12" />}
+              icon={<LogOut className="w-10 h-10 md:w-12 md:h-12" />}
               tooltip="Logout"
               variant="destructive"
             />

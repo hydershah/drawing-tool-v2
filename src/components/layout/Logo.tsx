@@ -39,18 +39,21 @@ export function Logo({ onClick }: LogoProps) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      {/* Static circle background - black in light mode, white in dark mode */}
+      <div className="absolute inset-0 w-full h-full bg-black dark:bg-white rounded-full" />
+
       <div
-        className="relative w-full h-full"
+        className="relative w-full h-full scale-125"
         style={{
           transform: isFlipping ? 'scaleX(0)' : 'scaleX(1)',
           transition: 'transform 400ms cubic-bezier(0.4, 0.0, 0.2, 1)',
         }}
       >
-        {/* Light theme logo frames (use dark SVGs for light mode) */}
+        {/* Light theme logo frames (use light SVGs for light mode) */}
         {[1, 2, 3, 4].map((frame) => (
           <img
             key={`light-${frame}`}
-            src={`/logos/${frame}-dark.svg`}
+            src={`/logos/${frame}-light.svg`}
             alt="Drawing Tool Logo"
             className={`absolute inset-0 w-full h-full object-contain dark-logo-fix-light transition-opacity duration-300 ${
               currentFrame === frame ? 'opacity-100' : 'opacity-0'
@@ -58,11 +61,11 @@ export function Logo({ onClick }: LogoProps) {
           />
         ))}
 
-        {/* Dark theme logo frames (use light SVGs for dark mode) */}
+        {/* Dark theme logo frames (use dark SVGs for dark mode) */}
         {[1, 2, 3, 4].map((frame) => (
           <img
             key={`dark-${frame}`}
-            src={`/logos/${frame}-light.svg`}
+            src={`/logos/${frame}-dark.svg`}
             alt="Drawing Tool Logo"
             className={`absolute inset-0 w-full h-full object-contain dark-logo-fix-dark transition-opacity duration-300 ${
               currentFrame === frame ? 'opacity-100' : 'opacity-0'
