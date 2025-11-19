@@ -34,7 +34,7 @@ export function Logo({ onClick }: LogoProps) {
 
   return (
     <div
-      className="fixed top-4 left-4 w-20 h-20 cursor-pointer relative z-[9999]"
+      className="fixed top-4 left-4 w-[70px] h-[70px] cursor-pointer relative z-[9999]"
       onClick={onClick}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -43,9 +43,9 @@ export function Logo({ onClick }: LogoProps) {
       <div className="absolute inset-0 w-full h-full bg-black dark:bg-white rounded-full" />
 
       <div
-        className="relative w-full h-full scale-125"
+        className="relative w-full h-full"
         style={{
-          transform: isFlipping ? 'scaleX(0)' : 'scaleX(1)',
+          transform: isFlipping ? 'scale(1.10) scaleX(0)' : 'scale(1.10) scaleX(1)',
           transition: 'transform 400ms cubic-bezier(0.4, 0.0, 0.2, 1)',
         }}
       >
