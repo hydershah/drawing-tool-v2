@@ -10,7 +10,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Separator } from '@/components/ui/Separator';
-import { Search, CheckCircle2, Paintbrush, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { formatDate } from '@/utils/format';
 
 // Number of prompts to load initially and per scroll
@@ -53,8 +53,8 @@ function PromptItem({
 
           {/* Prompt Text */}
           <div
-            className="text-foreground text-[14px] leading-relaxed"
-            style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+            className="text-foreground text-[14px] leading-relaxed uppercase tracking-wider font-medium"
+            style={{ fontFamily: 'Delcan Mono, monospace' }}
           >
             {prompt.prompt}
           </div>
@@ -62,20 +62,18 @@ function PromptItem({
           {/* Status/Button */}
           <div className="flex items-center justify-center">
             {prompt.status === 'completed' ? (
-              <div className="px-3 py-1.5 bg-green-500/15 text-green-400 rounded-md text-[11px] font-medium tracking-wide flex items-center gap-1.5 whitespace-nowrap">
-                <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Completed</span>
+              <div className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase whitespace-nowrap" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                COMPLETED
               </div>
             ) : (
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                variant="outline"
-                className="transition-all duration-200 whitespace-nowrap text-[12px] h-9 px-4 w-full"
+                className="transition-all duration-200 whitespace-nowrap text-[11px] h-9 px-4 w-full bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-2 border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
-                <Paintbrush className="w-4 h-4 mr-2" aria-hidden="true" />
-                Draw this prompt
+                DRAW THIS PROMPT
               </Button>
             )}
           </div>
@@ -86,8 +84,8 @@ function PromptItem({
           {/* Left: Prompt Text and Date */}
           <div className="flex-1 min-w-0 py-2">
             <div
-              className="text-foreground text-[15px] leading-relaxed truncate mb-1.5"
-              style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+              className="text-foreground text-[15px] leading-relaxed truncate mb-1.5 uppercase tracking-wider font-medium"
+              style={{ fontFamily: 'Delcan Mono, monospace' }}
               title={prompt.prompt}
             >
               {prompt.prompt}
@@ -115,20 +113,18 @@ function PromptItem({
           {/* Right: Status Badge and Draw Button */}
           <div className="flex items-center gap-3 flex-shrink-0 justify-end" style={{ width: '320px' }}>
             {prompt.status === 'completed' ? (
-              <div className="px-3 py-1.5 bg-green-500/15 text-green-400 rounded-md text-[11px] font-medium tracking-wide flex items-center gap-1.5 whitespace-nowrap">
-                <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Completed</span>
+              <div className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase whitespace-nowrap" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                COMPLETED
               </div>
             ) : (
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                variant="outline"
-                className="transition-all duration-200 whitespace-nowrap text-[13px] h-9 px-4 flex-shrink-0"
+                className="transition-all duration-200 whitespace-nowrap text-[11px] h-9 px-5 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 font-bold tracking-wider uppercase border-2 border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
+                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
-                <Paintbrush className="w-4 h-4 mr-2" aria-hidden="true" />
-                Draw this prompt
+                DRAW THIS PROMPT
               </Button>
             )}
           </div>
