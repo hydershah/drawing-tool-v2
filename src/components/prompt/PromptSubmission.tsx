@@ -196,7 +196,7 @@ export function PromptSubmission() {
                   value={prompt}
                   onChange={handlePromptChange}
                   placeholder="What should I draw for you today?"
-                  className="bg-transparent border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 px-0 flex-1 text-lg md:text-xl h-7 md:h-8"
+                  className="bg-transparent border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 px-0 flex-1 text-xl md:text-2xl h-7 md:h-8"
                   style={{ fontFamily: 'Delcan Mono, monospace' }}
                   autoFocus
                   disabled={isMorphing}
@@ -331,7 +331,7 @@ export function PromptSubmission() {
 
         {step === 'complete' && (
           <div className="relative animate-fadeIn" role="status" aria-live="polite">
-            <p className="text-center text-foreground/70 no-underline">
+            <p className="text-center text-foreground/70 no-underline text-xs uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               Thanks! We'll email you as soon as someone draws your prompt.
             </p>
           </div>

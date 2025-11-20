@@ -69,7 +69,7 @@ function PromptItem({
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[13px] h-8 px-4 w-full bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase border-2 border-white rounded-none"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-7 px-3 w-full bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase font-normal border border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
@@ -118,7 +118,7 @@ function PromptItem({
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[13px] h-8 px-5 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase border-2 border-white rounded-none"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-7 px-4 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase font-normal border border-white rounded-none"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
