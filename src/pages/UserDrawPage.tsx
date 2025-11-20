@@ -200,11 +200,11 @@ export function UserDrawPage() {
       await addArtwork(artworkData);
 
       if (artistEmail.trim()) {
-        toast.success('Your artwork has been submitted! Check your email to receive it. Browse more prompts to create more art!', {
+        toast.success('YOUR ARTWORK HAS BEEN SUBMITTED! CHECK YOUR EMAIL TO RECEIVE IT. BROWSE MORE PROMPTS TO CREATE MORE ART!', {
           duration: 5000,
         });
       } else {
-        toast.success('Your artwork has been submitted! Browse more prompts to create more art!', {
+        toast.success('YOUR ARTWORK HAS BEEN SUBMITTED! BROWSE MORE PROMPTS TO CREATE MORE ART!', {
           duration: 5000,
         });
       }
@@ -226,7 +226,7 @@ export function UserDrawPage() {
       <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
         {/* Canvas */}
         <div className="w-full lg:w-auto lg:flex-shrink-0">
-          <div className="bg-muted/20 rounded-lg p-4 max-w-3xl mx-auto lg:mx-0">
+          <div className="bg-muted/20 rounded-lg p-3 sm:p-4 w-full max-w-[95vw] sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto lg:mx-0">
             <DrawingCanvas
               ref={canvasRef}
               brush={brush}
@@ -430,7 +430,7 @@ export function UserDrawPage() {
             </div>
           </div>
 
-          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'Delcan Mono, monospace' }}>
             Your artwork will be reviewed by an admin before appearing in the gallery. If you provide your email, we'll send you a copy of your artwork!
           </div>
         </div>

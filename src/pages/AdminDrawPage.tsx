@@ -158,7 +158,7 @@ export function AdminDrawPage() {
       <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
         {/* Canvas */}
         <div className="w-full lg:w-auto lg:flex-shrink-0">
-          <div className="bg-muted/20 rounded-lg p-4 max-w-md mx-auto lg:mx-0">
+          <div className="bg-muted/20 rounded-lg p-3 sm:p-4 w-full max-w-[95vw] sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto lg:mx-0">
             <DrawingCanvas ref={canvasRef} brush={brush} />
           </div>
         </div>
@@ -394,7 +394,7 @@ export function AdminDrawPage() {
             </div>
           </div>
 
-          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'Delcan Mono, monospace' }}>
             Create artwork as admin. If you select a prompt, it will be marked as completed. If you provide an email, a notification will be sent.
           </div>
         </div>

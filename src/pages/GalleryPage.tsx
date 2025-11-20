@@ -84,7 +84,7 @@ function ArtworkCard({
       </div>
 
       <div
-        className="text-foreground text-sm mb-2 line-clamp-2"
+        className="text-foreground text-lg mb-2 line-clamp-2 leading-snug"
         style={{ fontFamily: 'Delcan Mono, monospace' }}
         title={artwork.promptText || 'No prompt'}
       >
@@ -93,7 +93,7 @@ function ArtworkCard({
 
       {artwork.artistName && (
         <div
-          className="flex items-center gap-2 text-muted-foreground mt-1 uppercase"
+          className="flex items-center gap-2 text-muted-foreground mt-1 uppercase tracking-wider"
           style={{ fontSize: '9pt', fontFamily: 'FK Grotesk Mono, monospace' }}
         >
           <User className="w-3 h-3" aria-hidden="true" />
