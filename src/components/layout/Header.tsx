@@ -3,7 +3,7 @@
  * Main navigation header
  */
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/contexts/AppContext';
@@ -11,14 +11,18 @@ import { Home, Image, BookOpen, LogOut } from 'lucide-react';
 
 export function Header() {
   const { isAdmin, logout } = useApp();
+  const location = useLocation();
+  const isDrawingPage = location.pathname === '/user-draw' || location.pathname === '/admin/draw';
 
   return (
     <header className="border-b bg-card">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link to="/" className="font-medium text-lg">
-            Drawing Tool
-          </Link>
+          {!isDrawingPage && (
+            <Link to="/" className="font-medium text-lg">
+              Drawing Tool
+            </Link>
+          )}
 
           <nav className="hidden md:flex items-center gap-4">
             <Link to="/">
