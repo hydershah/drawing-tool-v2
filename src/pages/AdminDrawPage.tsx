@@ -166,7 +166,7 @@ export function AdminDrawPage() {
         {/* Controls */}
         <div className="w-full lg:w-96 lg:flex-shrink-0 space-y-4">
           {/* Page Title */}
-          <div className="bg-card border border-border rounded-lg p-4 mt-8 text-center">
+          <div className="bg-card border border-border rounded-lg p-4 text-center">
             <div className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               Admin Draw
             </div>

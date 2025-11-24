@@ -238,7 +238,7 @@ export function UserDrawPage() {
         {/* Controls */}
         <div className="w-full lg:w-96 lg:flex-shrink-0 space-y-4">
           {/* Drawing Prompt Display */}
-          <div className="bg-card border border-border rounded-lg p-4 mt-8 text-left">
+          <div className="bg-card border border-border rounded-lg p-4 text-left">
             <div className="text-muted-foreground text-xs mb-2 uppercase" style={{ fontFamily: 'Delcan Mono, monospace' }}>
               Drawing Prompt:
             </div>
