@@ -367,7 +367,7 @@ export function AdminDrawPage() {
                 type="button"
               >
                 <Trash2 className="w-5 h-5" aria-hidden="true" />
-                <span className="text-sm">Clear</span>
+                <span className="text-sm uppercase">CLEAR</span>
               </button>
 
               <button
@@ -378,7 +378,7 @@ export function AdminDrawPage() {
                 type="button"
               >
                 <Download className="w-5 h-5" aria-hidden="true" />
-                <span className="text-sm">Download</span>
+                <span className="text-sm uppercase">DOWNLOAD</span>
               </button>
             </div>
 

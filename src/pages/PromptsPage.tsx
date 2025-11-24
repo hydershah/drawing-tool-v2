@@ -69,7 +69,7 @@ function PromptItem({
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[13px] h-7 px-3 w-full bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase font-medium border border-white rounded-none flex items-center justify-center"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-7 px-3 w-full bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase font-medium border border-white rounded-none flex items-center justify-center text-center"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
@@ -118,7 +118,7 @@ function PromptItem({
               <Button
                 onClick={() => onDrawClick(prompt)}
                 size="sm"
-                className="transition-all duration-200 whitespace-nowrap text-[13px] h-7 px-4 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase font-medium border border-white rounded-none flex items-center justify-center"
+                className="transition-all duration-200 whitespace-nowrap text-[13px] h-7 px-4 flex-shrink-0 bg-[#996090] text-white hover:bg-[#996090]/90 tracking-wider uppercase font-medium border border-white rounded-none flex items-center justify-center text-center"
                 aria-label={`Draw: ${prompt.prompt}`}
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
               >
@@ -129,7 +129,7 @@ function PromptItem({
         </div>
       </div>
       {!isLast && (
-        <div className="px-4 md:px-8">
+        <div className="px-4 md:px-8 -mt-2.5">
           <Separator className="bg-white dark:bg-white h-[1px]" />
         </div>
       )}

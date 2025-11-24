@@ -239,8 +239,8 @@ export function UserDrawPage() {
         <div className="w-full lg:w-96 lg:flex-shrink-0 space-y-4">
           {/* Drawing Prompt Display */}
           <div className="bg-card border border-border rounded-lg p-4 text-left">
-            <div className="text-muted-foreground text-xs mb-2 uppercase" style={{ fontFamily: 'Delcan Mono, monospace' }}>
-              Drawing Prompt:
+            <div className="text-muted-foreground text-sm mb-2" style={{ fontFamily: 'Delcan Mono, monospace' }}>
+              Prompt:
             </div>
             <div className="text-foreground text-sm font-medium" style={{ fontFamily: 'Delcan Mono, monospace' }}>
               {prompt.prompt}
@@ -249,7 +249,7 @@ export function UserDrawPage() {
 
           {/* Artist Name */}
           <div className="space-y-2">
-            <label htmlFor="artist-name" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            <label htmlFor="artist-name" className="text-foreground text-[11px] font-normal uppercase tracking-widest" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               YOUR NAME OR HANDLE:
             </label>
             <Input
@@ -273,7 +273,7 @@ export function UserDrawPage() {
 
           {/* Artist Email */}
           <div className="space-y-2">
-            <label htmlFor="artist-email" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            <label htmlFor="artist-email" className="text-foreground text-[11px] font-normal uppercase tracking-widest" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
               YOUR EMAIL (OPTIONAL):
             </label>
             <Input
@@ -303,7 +303,7 @@ export function UserDrawPage() {
             {/* Brush Size */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="brush-size" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="brush-size" className="text-foreground text-[11px] font-normal uppercase tracking-widest" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   BRUSH SIZE
                 </label>
                 <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
@@ -325,7 +325,7 @@ export function UserDrawPage() {
             {/* Ink Density */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="ink-density" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="ink-density" className="text-foreground text-[11px] font-normal uppercase tracking-widest" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   INK DENSITY
                 </label>
                 <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
@@ -347,7 +347,7 @@ export function UserDrawPage() {
             {/* Contrast */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="contrast" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                <label htmlFor="contrast" className="text-foreground text-[11px] font-normal uppercase tracking-widest" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
                   CONTRAST
                 </label>
                 <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
@@ -381,7 +381,7 @@ export function UserDrawPage() {
                 type="button"
               >
                 <Trash2 className="w-5 h-5" aria-hidden="true" />
-                <span className="text-sm">Clear</span>
+                <span className="text-sm uppercase">CLEAR</span>
               </button>
 
               <button
@@ -393,7 +393,7 @@ export function UserDrawPage() {
                 type="button"
               >
                 <Download className="w-5 h-5" aria-hidden="true" />
-                <span className="text-sm">Download</span>
+                <span className="text-sm uppercase">DOWNLOAD</span>
               </button>
             </div>
 
@@ -401,7 +401,7 @@ export function UserDrawPage() {
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitDisabled}
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed h-12 px-6 py-4 transition-all duration-200 text-sm font-semibold"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed h-12 px-6 py-4 transition-all duration-200 text-base"
                 style={{ fontFamily: 'Delcan Mono, monospace' }}
                 type="button"
               >
@@ -430,8 +430,8 @@ export function UserDrawPage() {
             </div>
           </div>
 
-          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'Martina Plantijn, Georgia, serif' }}>
-            Your artwork will be reviewed by an admin before appearing in the gallery. If you provide your email, we'll send you a copy of your artwork
+          <div className="text-muted-foreground text-sm leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'Martina Plantijn, Georgia, serif' }}>
+            Your artwork will be reviewed by an admin before appearing in the gallery. If you provide your email, we'll send you a copy of your artwork.
           </div>
         </div>
       </div>
