@@ -153,9 +153,9 @@ export function AdminDrawPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start pt-0 pb-6 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-start pt-16 md:pt-8 lg:pt-0 pb-6 px-4">
       {/* Main Content Container */}
-      <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8 -mt-4">
+      <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8 mt-4 md:mt-0 lg:-mt-4">
         {/* Canvas */}
         <div className="w-full lg:w-auto lg:flex-shrink-0">
           <div className="bg-muted/20 rounded-lg p-3 sm:p-4 w-full max-w-md md:max-w-lg lg:max-w-xl mx-auto lg:mx-0">

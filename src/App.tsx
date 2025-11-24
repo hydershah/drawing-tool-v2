@@ -89,6 +89,8 @@ function FixedNav() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const isDrawingPage = location.pathname === '/user-draw' || location.pathname === '/admin/draw';
+
   const handleLogoClick = useCallback(() => {
     // If on home page, toggle sidebar; otherwise navigate home
     if (location.pathname === '/') {
@@ -103,8 +105,13 @@ function FixedNav() {
       {/* About Sidebar */}
       <AboutSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* Logo in top-left */}
-      <Logo onClick={handleLogoClick} isOpen={isSidebarOpen} />
+      {/* Logo in top-left - hidden on mobile for drawing pages */}
+      {!isDrawingPage && <Logo onClick={handleLogoClick} isOpen={isSidebarOpen} />}
+      {isDrawingPage && (
+        <div className="hidden md:block">
+          <Logo onClick={handleLogoClick} isOpen={isSidebarOpen} />
+        </div>
+      )}
 
       {/* Navigation icons in top-right */}
       <div className="fixed top-2 right-2 md:top-4 md:right-4 flex flex-wrap gap-1.5 md:gap-4 z-[9999] max-w-[calc(100vw-80px)] md:max-w-none justify-end">
