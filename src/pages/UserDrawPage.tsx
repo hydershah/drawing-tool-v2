@@ -221,7 +221,7 @@ export function UserDrawPage() {
   const isSubmitDisabled = !artistName.trim() || isSubmitting || !hasDrawn || !!nameError || !!emailError;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start pt-6 pb-6 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
       {/* Main Content Container */}
       <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
         {/* Canvas */}
@@ -239,25 +239,25 @@ export function UserDrawPage() {
         <div className="w-full lg:w-96 lg:flex-shrink-0 space-y-4">
           {/* Drawing Prompt Display */}
           <div className="bg-card border border-border rounded-lg p-4 mt-8 text-left">
-            <div className="text-muted-foreground text-xs mb-2 uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            <div className="text-muted-foreground text-xs mb-2 uppercase" style={{ fontFamily: 'Delcan Mono, monospace' }}>
               Drawing Prompt:
             </div>
-            <div className="text-foreground text-sm font-medium" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+            <div className="text-foreground text-sm font-medium" style={{ fontFamily: 'Delcan Mono, monospace' }}>
               {prompt.prompt}
             </div>
           </div>
 
           {/* Artist Name */}
           <div className="space-y-2">
-            <label htmlFor="artist-name" className="text-muted-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
-              Your Name
+            <label htmlFor="artist-name" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+              YOUR NAME OR HANDLE:
             </label>
             <Input
               id="artist-name"
               value={artistName}
               onChange={handleArtistNameChange}
               placeholder="Artist name"
-              className="bg-card border-border text-foreground placeholder:text-muted-foreground h-10 transition-all duration-200 hover:border-primary focus:border-primary"
+              className="bg-card border-border text-foreground placeholder:text-muted-foreground h-10 text-base transition-all duration-200 hover:border-primary focus:border-primary"
               style={{ fontFamily: 'Delcan Mono, monospace' }}
               maxLength={100}
               autoComplete="name"
@@ -273,8 +273,8 @@ export function UserDrawPage() {
 
           {/* Artist Email */}
           <div className="space-y-2">
-            <label htmlFor="artist-email" className="text-muted-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
-              Your Email (optional)
+            <label htmlFor="artist-email" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+              YOUR EMAIL (OPTIONAL):
             </label>
             <Input
               id="artist-email"
@@ -282,7 +282,7 @@ export function UserDrawPage() {
               value={artistEmail}
               onChange={handleArtistEmailChange}
               placeholder="Add your email here"
-              className="bg-card border-border text-foreground placeholder:text-muted-foreground h-10 transition-all duration-200 hover:border-primary focus:border-primary"
+              className="bg-card border-border text-foreground placeholder:text-muted-foreground h-10 text-base transition-all duration-200 hover:border-primary focus:border-primary"
               style={{ fontFamily: 'Delcan Mono, monospace' }}
               maxLength={254}
               autoComplete="email"
@@ -303,8 +303,8 @@ export function UserDrawPage() {
             {/* Brush Size */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="brush-size" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
-                  Brush Size
+                <label htmlFor="brush-size" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                  BRUSH SIZE
                 </label>
                 <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.size}px
@@ -325,8 +325,8 @@ export function UserDrawPage() {
             {/* Ink Density */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="ink-density" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
-                  Ink Density
+                <label htmlFor="ink-density" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                  INK DENSITY
                 </label>
                 <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.density}%
@@ -347,8 +347,8 @@ export function UserDrawPage() {
             {/* Contrast */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="contrast" className="text-foreground text-sm font-medium uppercase" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
-                  Contrast
+                <label htmlFor="contrast" className="text-foreground text-xs font-normal uppercase tracking-wider" style={{ fontFamily: 'FK Grotesk Mono, monospace' }}>
+                  CONTRAST
                 </label>
                 <span className="text-foreground text-sm" style={{ fontFamily: 'Delcan Mono, monospace' }} aria-live="polite">
                   {brush.contrast}%
@@ -402,7 +402,7 @@ export function UserDrawPage() {
                 onClick={handleSubmit}
                 disabled={isSubmitDisabled}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed h-12 px-6 py-4 transition-all duration-200 text-sm font-semibold"
-                style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
+                style={{ fontFamily: 'Delcan Mono, monospace' }}
                 type="button"
               >
                 {isSubmitting ? (
@@ -421,17 +421,17 @@ export function UserDrawPage() {
               <Button
                 onClick={() => navigate('/prompts')}
                 variant="ghost"
-                className="w-full text-muted-foreground hover:text-foreground hover:bg-accent/50 h-11 transition-all duration-200"
+                className="w-full text-muted-foreground hover:text-foreground hover:bg-accent/50 h-11 transition-all duration-200 justify-start text-left uppercase"
                 style={{ fontFamily: 'FK Grotesk Mono, monospace' }}
                 type="button"
               >
-                Back to Prompts
+                BACK TO PROMPTS
               </Button>
             </div>
           </div>
 
-          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'Delcan Mono, monospace' }}>
-            Your artwork will be reviewed by an admin before appearing in the gallery. If you provide your email, we'll send you a copy of your artwork!
+          <div className="text-muted-foreground text-xs leading-relaxed bg-muted/30 rounded-lg p-4 mt-5" style={{ fontFamily: 'Martina Plantijn, Georgia, serif' }}>
+            Your artwork will be reviewed by an admin before appearing in the gallery. If you provide your email, we'll send you a copy of your artwork
           </div>
         </div>
       </div>

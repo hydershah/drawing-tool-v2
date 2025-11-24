@@ -143,7 +143,7 @@ export function AboutSidebar({ isOpen, onClose }: AboutSidebarProps) {
 
         {/* Content */}
         <div
-          className="p-6 pt-16 sm:p-8 sm:pt-24 md:pl-24 sidebar-content"
+          className="px-6 pt-48 pb-6 sm:p-8 sm:pt-48 md:pl-44 md:pr-8 sidebar-content"
           style={{ fontFamily: 'Martina Plantijn, Georgia, serif' }}
           dangerouslySetInnerHTML={{ __html: content }}
         />
