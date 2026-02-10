@@ -325,6 +325,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Sync with backend in background
     try {
       await artworkStorage.reject(id);
+
+      // Refresh prompts to reflect reactivated prompt status
+      if (artwork?.promptId) {
+        refreshPrompts();
+      }
     } catch (error) {
       console.error('Failed to reject artwork:', error);
       // Revert on error
@@ -332,7 +337,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setPendingArtworks(prev => [artwork, ...prev]);
       }
     }
-  }, [pendingArtworks]);
+  }, [pendingArtworks, refreshPrompts]);
 
   const deleteArtwork = useCallback(async (id: string) => {
     // Optimistic update - instant UI feedback

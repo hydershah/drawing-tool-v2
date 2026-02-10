@@ -64,7 +64,7 @@ function NavButton({
       ? 'text-red-500 hover:text-red-600 w-10 h-10 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent'
       : isActive
       ? 'text-foreground w-10 h-10 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent'
-      : 'text-muted-foreground hover:text-foreground w-10 h-10 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent';
+      : 'text-foreground w-10 h-10 md:w-12 md:h-12 p-0 bg-transparent hover:bg-transparent';
 
   return (
     <Tooltip>

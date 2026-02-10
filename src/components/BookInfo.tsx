@@ -87,7 +87,7 @@ export function BookInfo() {
       {/* Book Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-8 h-8 md:w-12 md:h-12 p-0 bg-transparent flex items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-200"
+        className="w-8 h-8 md:w-12 md:h-12 p-0 bg-transparent flex items-center justify-center text-foreground transition-all duration-200"
         aria-label="Book information"
       >
         <svg className="w-8 h-8 md:w-12 md:h-12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66.39 67.63" fill="currentColor">

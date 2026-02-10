@@ -191,7 +191,7 @@ export const promptStorage = {
 export const artworkStorage = {
   async getAll(): Promise<Artwork[]> {
     // Express returns array directly for approved artworks
-    const artworksData = await apiCall<any[]>('artworks?status=approved', {
+    const artworksData = await apiCall<any[]>('artworks?status=approved&limit=10000', {
       method: 'GET',
     });
 
@@ -234,7 +234,7 @@ export const artworkStorage = {
   async getPending(): Promise<Artwork[]> {
     try {
       // Express returns array directly for pending artworks
-      const artworksData = await apiCall<any[]>('artworks?status=pending', {
+      const artworksData = await apiCall<any[]>('artworks?status=pending&limit=10000', {
         method: 'GET',
       });
 

@@ -1,20 +1,20 @@
 /**
  * PromptsPage
  * Browse all submitted prompts from the community
- * Implements infinite scroll for performance optimization
+ * Classic pagination with per-page selector
  */
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Separator } from '@/components/ui/Separator';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/utils/format';
 
-// Number of prompts to load initially and per scroll
-const ITEMS_PER_PAGE = 50;
+const DEFAULT_PER_PAGE = 50;
+const PER_PAGE_OPTIONS = [25, 50, 100];
 
 function PromptItem({
   prompt,
@@ -137,12 +137,40 @@ function PromptItem({
   );
 }
 
+function getPageNumbers(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const pages: (number | 'ellipsis')[] = [1];
+
+  if (currentPage > 3) {
+    pages.push('ellipsis');
+  }
+
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  if (currentPage < totalPages - 2) {
+    pages.push('ellipsis');
+  }
+
+  pages.push(totalPages);
+
+  return pages;
+}
+
 export function PromptsPage() {
   const { prompts, isLoading } = useApp();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PER_PAGE);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -153,7 +181,6 @@ export function PromptsPage() {
   }, []);
 
   const handleDrawClick = useCallback((prompt: any) => {
-    // Navigate to user draw page with the prompt
     navigate('/user-draw', { state: { prompt } });
   }, [navigate]);
 
@@ -167,41 +194,27 @@ export function PromptsPage() {
     return prompts.filter((prompt) => prompt.prompt.toLowerCase().includes(lowerQuery));
   }, [prompts, searchQuery]);
 
-  // Only display a subset of prompts for performance
+  const totalPages = Math.max(1, Math.ceil(filteredPrompts.length / itemsPerPage));
+
+  // Paginated subset
   const displayedPrompts = useMemo(() => {
-    return filteredPrompts.slice(0, displayCount);
-  }, [filteredPrompts, displayCount]);
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredPrompts.slice(start, start + itemsPerPage);
+  }, [filteredPrompts, currentPage, itemsPerPage]);
 
-  const hasMore = displayCount < filteredPrompts.length;
-
-  // Reset display count when search query changes
+  // Reset to page 1 when search or per-page changes
   useEffect(() => {
-    setDisplayCount(ITEMS_PER_PAGE);
-  }, [searchQuery]);
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage]);
 
-  // Infinite scroll using Intersection Observer
+  // Scroll to top when page changes
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting && hasMore) {
-          setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
-        }
-      },
-      { rootMargin: '400px' } // Load more 400px before reaching the end
-    );
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
-    const currentRef = loadMoreRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, [hasMore]);
+  const goToPage = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
 
   if (isLoading) {
     return (
@@ -216,8 +229,10 @@ export function PromptsPage() {
     );
   }
 
+  const pageNumbers = getPageNumbers(currentPage, totalPages);
+
   return (
-    <div className="h-screen overflow-y-auto">
+    <div ref={scrollRef} className="h-screen overflow-y-auto">
       <div className="space-y-6 md:space-y-8 mt-16 md:mt-24 px-4 md:px-8">
         <div className="space-y-4 md:space-y-5">
         {/* Search Bar */}
@@ -273,7 +288,7 @@ export function PromptsPage() {
         >
           {searchQuery ? (
             <>
-              No prompts match your search for "{searchQuery}".
+              No prompts match your search for &quot;{searchQuery}&quot;.
               <button
                 onClick={clearSearch}
                 className="block mx-auto mt-4 text-muted-foreground hover:text-foreground underline text-[13px]"
@@ -310,18 +325,84 @@ export function PromptsPage() {
             ))}
           </div>
 
-          {/* Infinite scroll trigger and loading indicator */}
-          {hasMore && (
-            <div ref={loadMoreRef} className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
-              <span className="ml-2 text-muted-foreground text-sm">Loading more prompts...</span>
-            </div>
-          )}
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-6 px-4 md:px-8">
+              {/* Per page selector */}
+              <div
+                className="flex items-center gap-2 text-muted-foreground"
+                style={{ fontSize: '10pt', fontFamily: 'FK Grotesk Mono, monospace' }}
+              >
+                <span>Per page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="bg-card border border-border rounded px-2 py-1 text-foreground"
+                  aria-label="Items per page"
+                >
+                  {PER_PAGE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Summary of loaded items */}
-          {!hasMore && filteredPrompts.length > ITEMS_PER_PAGE && (
-            <div className="text-center text-muted-foreground text-sm py-4">
-              Showing all {filteredPrompts.length} prompts
+              {/* Page numbers */}
+              <nav className="flex items-center gap-1" aria-label="Pagination">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded text-foreground disabled:text-muted-foreground/30 hover:bg-accent transition-colors"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {pageNumbers.map((page, idx) =>
+                  page === 'ellipsis' ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-2 text-muted-foreground"
+                      style={{ fontSize: '10pt', fontFamily: 'FK Grotesk Mono, monospace' }}
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      className={`min-w-[32px] h-8 rounded transition-colors ${
+                        currentPage === page
+                          ? 'bg-foreground text-background'
+                          : 'text-foreground hover:bg-accent'
+                      }`}
+                      style={{ fontSize: '10pt', fontFamily: 'FK Grotesk Mono, monospace' }}
+                      aria-label={`Page ${page}`}
+                      aria-current={currentPage === page ? 'page' : undefined}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded text-foreground disabled:text-muted-foreground/30 hover:bg-accent transition-colors"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </nav>
+
+              {/* Page indicator */}
+              <div
+                className="text-muted-foreground"
+                style={{ fontSize: '10pt', fontFamily: 'FK Grotesk Mono, monospace' }}
+              >
+                Page {currentPage} of {totalPages}
+              </div>
             </div>
           )}
         </div>
